@@ -159,7 +159,7 @@ details.card[open] summary{margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><div class="logo">HOOK<b>.</b></div><div class="sub">lyric video studio – v2.2</div></header>
+<header><div class="logo">HOOK<b>.</b></div><div class="sub">lyric video studio – v2.3</div></header>
 
 <main>
 <!-- 01 PROJEKT -->
@@ -193,6 +193,14 @@ details.card[open] summary{margin-bottom:12px}
 
 <!-- 02 SYNC -->
 <section class="tab" id="tab-sync">
+  <div class="card">
+    <div class="lbl"><span>🤖 Automatisch timen</span><span id="asrStat"></span></div>
+    <div class="seg" id="segLang"><button data-v="german">Deutsch</button><button data-v="english">Englisch</button><button data-v="auto">Auto</button></div>
+    <div class="seg" id="segModel" style="margin-top:8px"><button data-v="tiny">Schnell</button><button data-v="base">Genau</button></div>
+    <button class="btn pri" id="btnAuto" style="margin-top:10px">🤖 Lyrics automatisch timen</button>
+    <div class="bar" id="asrBarW" style="width:100%;margin-top:12px;display:none;background:rgba(18,59,18,.2)"><i id="asrBar" style="background:var(--ink)"></i></div>
+    <p class="hint" id="asrHint">Die KI hört den Song komplett auf deinem iPhone ab und setzt Zeilen- und Wort-Timing. Beim ersten Mal lädt sie einmalig ca. 41 MB (Schnell) bzw. 77 MB (Genau). Danach kurz prüfen und einzelne Zeilen mit −/+ korrigieren.</p>
+  </div>
   <div class="card">
     <div class="lbl"><span>Synchronisieren</span><span id="syncStat"></span></div>
     <div class="row2">
@@ -244,6 +252,11 @@ details.card[open] summary{margin-bottom:12px}
         <button class="btn sm" id="btnDice">🎲 Alles neu würfeln</button>
       </div>
     </div>
+    <div class="card"><div class="lbl">Bewegung im Hintergrund</div>
+      <label class="tg"><span>Partikel &amp; Licht</span><input type="checkbox" id="tPart"><i></i></label>
+      <label class="tg"><span>Fliegende Stil-Elemente</span><input type="checkbox" id="tFloat"><i></i></label>
+      <label class="tg"><span>Musik-Visualizer</span><input type="checkbox" id="tViz"><i></i></label>
+    </div>
     <div class="card"><div class="lbl">Animation</div>
       <div class="seg" id="segEnergy"><button data-v="0.6">Ruhig</button><button data-v="1">Normal</button><button data-v="1.5">Wild</button></div>
     </div>
@@ -274,6 +287,11 @@ details.card[open] summary{margin-bottom:12px}
       <div class="hint mono" id="genStat"></div>
     </div>
     <div id="imgGrid" class="grid"></div>
+    <div class="card"><div class="lbl"><span>3D-Tiefe</span><span id="depthStat"></span></div>
+      <label class="tg"><span>Bilder räumlich bewegen</span><input type="checkbox" id="tDepth"><i></i></label>
+      <button class="btn pri sm" id="btnDepth" style="margin-top:8px">🧊 Tiefe für alle Bilder berechnen</button>
+      <p class="hint">Eine KI schätzt, was im Bild vorne und hinten ist. Dadurch bewegt sich der Vordergrund stärker als der Hintergrund. Läuft auf dem iPhone, lädt einmalig ca. 27 MB.</p>
+    </div>
     <div class="card"><div class="lbl"><span>Pollinations-Key (optional)</span><span id="keyStat"></span></div>
       <input type="text" id="inKey" placeholder="pk_…  (leer = Gratis-Modus)" autocomplete="off" autocapitalize="off" spellcheck="false">
       <p class="hint">Kostenloser Key über enter.pollinations.ai (anmelden, Key erstellen, einfügen). Mit Key: schneller und ohne Logo. Ohne Key wartet HOOK automatisch 16 s zwischen den Bildern und versucht es bei Fehlern erneut.</p>
@@ -289,7 +307,8 @@ details.card[open] summary{margin-bottom:12px}
   <div class="sub-p" id="sub-avatar">
     <div class="card">
       <label class="tg"><span>Singender Avatar</span><input type="checkbox" id="tAv"><i></i></label>
-      <p class="hint">Der Avatar wird groß zum Hauptmotiv, die Lyrics wandern ins untere Drittel. Der Mund bewegt sich mit dem Gesang – angenähert über dein Timing, kein silbengenaues Lipsync.</p>
+      <label class="tg"><span>Blinzeln &amp; Kopfbewegung</span><input type="checkbox" id="tMimic"><i></i></label>
+      <p class="hint">Der Avatar wird groß zum Hauptmotiv, die Lyrics wandern ins untere Drittel. Der Mund formt die Laute der Wörter (A, O, M …) – am genauesten nach „Automatisch timen“.</p>
     </div>
     <div class="card"><div class="lbl">Charakter beschreiben</div>
       <textarea id="inAvDesc" style="min-height:110px" placeholder="z. B. junge Frau mit pinken Locken und Lederjacke, selbstbewusst"></textarea>
@@ -455,7 +474,8 @@ const EMO = [
 /* ================= State ================= */
 const DEF = { pack:'paper', palShift:0, energy:1, emojis:true, doodles:true, upper:true, showTitle:true, progress:false, handle:'', react:60,
   shift:-0.15, range:'full', clipStart:0, clipLen:30, seed:0, genre:'pop', imgMode:'section', endpoint:DEF_EP,
-  apiKey:'', avatar:false, avDesc:'', mouthX:0.5, mouthY:0.38, mouthW:0.1, mouthAmt:0.8, avZoom:1.3, mouthAng:0, chinH:0, paperSet:0 };
+  apiKey:'', avatar:false, avDesc:'', mouthX:0.5, mouthY:0.38, mouthW:0.1, mouthAmt:0.8, avZoom:1.3, mouthAng:0, chinH:0, paperSet:0,
+  fxPart:true, fxFloat:true, fxViz:true, fxDepth:true, mimic:true, eyes:null, asrLang:'german', asrModel:'base' };
 let S = Object.assign({}, DEF);
 let P = { title:'', artist:'', lyricsRaw:'', audioName:'', secs:[], prompts:{}, seeds:{}, ai:{} };
 let lines = [];
@@ -524,9 +544,9 @@ function ensureGraph(){
     fdata = new Uint8Array(analyser.frequencyBinCount); actx.resume().catch(() => {}); return true;
   } catch (e) { console.warn(e); return false; }
 }
-let bassS = 0, bassSlow = 0, pulse = 0, vocal = 0.5, vocalSlow = 0;
+let bassS = 0, bassSlow = 0, pulse = 0, vocal = 0.5, vocalSlow = 0; const bands = new Float32Array(28);
 function updateBass(){
-  if (!analyser || audio.paused){ pulse *= 0.88; return; }
+  if (!analyser || audio.paused){ pulse *= 0.88; for (let b = 0; b < bands.length; b++) bands[b] *= 0.9; return; }
   analyser.getByteFrequencyData(fdata);
   let s = 0; for (let i = 1; i <= 6; i++) s += fdata[i];
   const b = s / 6 / 255;
@@ -534,6 +554,8 @@ function updateBass(){
   pulse += (clamp((bassS - bassSlow) * 5) - pulse) * 0.5;
   let m = 0; for (let i = 6; i <= 60; i++) m += fdata[i]; m /= 55 * 255;
   vocalSlow += (m - vocalSlow) * 0.01; vocal = clamp(0.5 + (m - vocalSlow) * 6);
+  const NB = bands.length;
+  for (let b = 0; b < NB; b++){ const lo = Math.floor(2 * Math.pow(80, b / NB)), hi = Math.max(lo + 1, Math.floor(2 * Math.pow(80, (b + 1) / NB))); let q = 0; for (let i = lo; i < hi; i++) q += fdata[i]; const v = q / (hi - lo) / 255; bands[b] += (v - bands[b]) * (v > bands[b] ? 0.6 : 0.12); }
 }
 
 /* ================= Lyrics ================= */
@@ -556,7 +578,7 @@ function reconcile(nl, old){
   let j = 0;
   return nl.map(n => {
     for (let k = j; k < Math.min(old.length, j + 8); k++){
-      if (old[k].text === n.text){ j = k + 1; const o = old[k]; return { text: n.text, sec: n.sec, t: o.t, end: o.end, lay: o.lay || 'auto', emo: o.emo || '', key: o.key != null ? o.key : null, v: o.v || 0 }; }
+      if (old[k].text === n.text){ j = k + 1; const o = old[k]; return { text: n.text, sec: n.sec, t: o.t, end: o.end, lay: o.lay || 'auto', emo: o.emo || '', key: o.key != null ? o.key : null, v: o.v || 0, wt: o.wt || null, we: o.we || null }; }
     }
     return { text: n.text, sec: n.sec, t: null, end: null, lay: 'auto', emo: '', key: null, v: 0 };
   });
@@ -578,11 +600,18 @@ function getTimeline(){
     a.words = a.rawWords.map(w => S.upper ? w.toLocaleUpperCase('de-DE') : w);
     const n = Math.max(1, a.words.length);
     const next = L[k + 1] ? L[k + 1].start : Infinity;
-    let end = (a.endX != null && a.endX > a.start) ? Math.min(a.endX, next) : Math.min(next, a.start + 2.8 + 0.55 * n);
+    const ln = lines[a.i]; const hasW = !!(ln.wt && ln.wt.length === a.words.length && a.words.length);
+    let end;
+    if (a.endX != null && a.endX > a.start) end = Math.min(a.endX, next);
+    else if (hasW){ const lastE = (ln.we && ln.we.length === ln.wt.length ? ln.we[ln.we.length - 1] : ln.wt[ln.wt.length - 1] + 0.4) + S.shift; end = Math.min(next, Math.max(lastE + 0.6, a.start + 0.8)); }
+    else end = Math.min(next, a.start + 2.8 + 0.55 * n);
     a.auto = end === next; if (end < a.start + 0.3) end = a.start + 0.3; a.end = end;
-    const reveal = Math.min((end - a.start) * 0.85, 0.42 * n + 0.05);
-    const wts = a.words.map(w => w.length + 1); const tot = wts.reduce((x, y) => x + y, 0) || 1; let c = 0;
-    a.wt = a.words.map((w, j) => { const v = a.start + reveal * c / tot; c += wts[j]; return v; });
+    if (hasW) a.wt = ln.wt.map(x => x + S.shift);
+    else {
+      const reveal = Math.min((end - a.start) * 0.85, 0.42 * n + 0.05);
+      const wts = a.words.map(w => w.length + 1); const tot = wts.reduce((x, y) => x + y, 0) || 1; let c = 0;
+      a.wt = a.words.map((w, j) => { const v = a.start + reveal * c / tot; c += wts[j]; return v; });
+    }
     tlByI[a.i] = a;
   }
   tlCache = L; tlVer = ver; return L;
@@ -781,6 +810,9 @@ function drawShape(type, s, p, col){
     case 'line': strokeDraw(() => { ctx.moveTo(-s, 0); ctx.lineTo(s, 0); }, s * 2, p, col, 4); break;
     case 'arrow': strokeDraw(() => { ctx.moveTo(-s * 0.8, s * 0.4); ctx.quadraticCurveTo(0, -s * 0.6, s * 0.8, 0); ctx.moveTo(s * 0.8, 0); ctx.lineTo(s * 0.42, -s * 0.12); ctx.moveTo(s * 0.8, 0); ctx.lineTo(s * 0.58, s * 0.32); }, s * 3.2, p, col, s * 0.07); break;
     case 'asterisk': ctx.strokeStyle = col; ctx.lineWidth = s * 0.08; for (let i = 0; i < 3; i++){ const an = i * Math.PI / 3; ctx.beginPath(); ctx.moveTo(-Math.cos(an) * s * 0.45 * e, -Math.sin(an) * s * 0.45 * e); ctx.lineTo(Math.cos(an) * s * 0.45 * e, Math.sin(an) * s * 0.45 * e); ctx.stroke(); } break;
+    case 'scrap': { ctx.scale(e, e); const w2 = s * 0.6, h2 = s * 0.42; const jg = k => (Math.abs(Math.sin(k * 12.9898 + s) * 43758.5) % 1) * 8;
+      ctx.beginPath(); ctx.moveTo(-w2, -h2); for (let x = -w2; x <= w2; x += 10) ctx.lineTo(x, -h2 + jg(x)); for (let y = -h2; y <= h2; y += 10) ctx.lineTo(w2 - jg(y + 50), y); for (let x = w2; x >= -w2; x -= 10) ctx.lineTo(x, h2 - jg(x + 99)); ctx.closePath();
+      ctx.fillStyle = col; ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0; break; }
     case 'tape': ctx.scale(e, e); ctx.fillStyle = rgba(col, 0.8); ctx.fillRect(-s * 0.9, -s * 0.2, s * 1.8, s * 0.4); ctx.fillStyle = 'rgba(0,0,0,0.12)'; for (let x = -s * 0.9; x < s * 0.9; x += 14) ctx.fillRect(x, -s * 0.2, 2, s * 0.4); break;
     case 'x': strokeDraw(() => { ctx.moveTo(-s * 0.35, -s * 0.35); ctx.lineTo(s * 0.35, s * 0.35); ctx.moveTo(s * 0.35, -s * 0.35); ctx.lineTo(-s * 0.35, s * 0.35); }, s * 2, p, col, s * 0.1); break;
     case 'crown': strokeDraw(() => { ctx.moveTo(-s * 0.5, s * 0.3); ctx.lineTo(-s * 0.5, -s * 0.2); ctx.lineTo(-s * 0.25, s * 0.05); ctx.lineTo(0, -s * 0.35); ctx.lineTo(s * 0.25, s * 0.05); ctx.lineTo(s * 0.5, -s * 0.2); ctx.lineTo(s * 0.5, s * 0.3); ctx.closePath(); }, s * 3.6, p, col, s * 0.08); break;
@@ -995,6 +1027,10 @@ function drawImgBg(img, key, seg, t, R){
   const dir = sk % 4; const px = [-1, 1, 0, 0][dir] * 40 * q, py = [0, 0, -1, 1][dir] * 60 * q;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   ctx.save(); ctx.translate(W / 2 + px, H / 2 + py); ctx.scale(z, z); drawFit(ctx, img, -W / 2, -H / 2, W, H, isAnon(key) ? 0.1 : 0); ctx.restore();
+  const DL = getDepth(key);
+  if (DL){ const E = S.energy; DL.forEach((lc, k) => { const lv = k + 1; const zz = z * (1 + 0.025 * lv + 0.02 * lv * Math.sin(t * 0.3 + sk));
+    const ox = Math.sin(t * 0.23 + sk) * 12 * lv * E, oy = Math.cos(t * 0.19 + sk) * 8 * lv * E - pulse * R * 3 * lv;
+    ctx.save(); ctx.translate(W / 2 + px + ox, H / 2 + py + oy); ctx.scale(zz, zz); drawFit(ctx, lc, -W / 2, -H / 2, W, H, isAnon(key) ? 0.1 : 0); ctx.restore(); }); }
   const ov = { cartoon: 0.1, neon: 0.42, editorial: 0.05, street: 0.35 }[S.pack] || 0.2;
   ctx.fillStyle = 'rgba(0,0,0,' + ov + ')'; ctx.fillRect(0, 0, W, H);
   if (S.pack === 'neon'){ ctx.fillStyle = rgba(pal(0), 0.12 + 0.1 * pulse * R); ctx.fillRect(0, 0, W, H); }
@@ -1028,51 +1064,106 @@ const isAnon = k => !!(P.ai && (P.ai[k] === 'anon' || P.ai[k] === true));
 function avatarActive(){ return !!(S.avatar && imgs.avatar && imgs.avatar.img); }
 let avTestUntil = 0;
 function sylCount(w){ const m = String(w).toLowerCase().match(/[aeiouyäöü]+/g); return m ? m.length : 1; }
-function mouthOpen(L, t){
-  if (Date.now() < avTestUntil) return (0.5 + 0.5 * Math.sin(Date.now() / 85)) * S.mouthAmt;
-  let o = 0;
+const VIS = { A:[1,1,0], O:[0.75,0.66,1], U:[0.5,0.52,1], E:[0.52,1.12,0], I:[0.36,1.2,0], M:[0,0.92,0], F:[0.14,1,0], C:[0.3,0.96,0], X:[0.04,0.95,0] };
+const VOW = 'AOUEI';
+function visSeq(word){
+  const out = [];
+  for (const ch of String(word).toLowerCase()){
+    let v = null;
+    if ('aä'.indexOf(ch) >= 0) v = 'A'; else if ('oö'.indexOf(ch) >= 0) v = 'O'; else if ('uü'.indexOf(ch) >= 0) v = 'U'; else if (ch === 'e') v = 'E'; else if ('iy'.indexOf(ch) >= 0) v = 'I';
+    else if ('mbp'.indexOf(ch) >= 0) v = 'M'; else if ('fvw'.indexOf(ch) >= 0) v = 'F'; else if (/[a-zß]/.test(ch)) v = 'C';
+    if (!v || (out.length && out[out.length - 1].v === v)) continue;
+    out.push({ v: v, wt: VOW.indexOf(v) >= 0 ? 2.2 : 1 });
+  }
+  if (!out.length) out.push({ v: 'C', wt: 1 });
+  return out;
+}
+function wordEnd(a, j){
+  const l = lines[a.i]; if (l && l.we && l.we.length === a.wt.length) return Math.max(a.wt[j] + 0.08, l.we[j] + S.shift);
+  const n = a.wt.length, ws = a.wt[j], sy = sylCount(a.words[j]);
+  let we = j + 1 < n ? Math.min(a.wt[j + 1], ws + 0.3 * sy + 0.5) : Math.min(a.end - 0.05, ws + 0.25 * sy + 0.35);
+  return Math.max(we, ws + 0.08);
+}
+function mouthShape(L, t){
+  if (Date.now() < avTestUntil){
+    const sq = ['A','E','I','O','U','M','A','O']; const ph = Date.now() / 260; const k = Math.floor(ph) % sq.length; const f = ph % 1;
+    const A = VIS[sq[k]], B = VIS[sq[(k + 1) % sq.length]]; const m = f > 0.7 ? (f - 0.7) / 0.3 : 0;
+    return [(A[0] + (B[0] - A[0]) * m) * S.mouthAmt, A[1] + (B[1] - A[1]) * m, A[2] + (B[2] - A[2]) * m];
+  }
   for (const a of L){
-    if (t < a.start - 0.02 || t > a.end) continue;
-    const n = a.wt.length;
-    for (let j = 0; j < n; j++){
-      const ws = a.wt[j]; const sy = sylCount(a.words[j]);
-      let we = j + 1 < n ? a.wt[j + 1] : Math.min(a.end - 0.05, ws + 0.25 * sy + 0.35); if (we <= ws + 0.08) we = ws + 0.08;
-      if (t >= ws && t < we){ const pr = (t - ws) / (we - ws); o = Math.max(o, 0.25 + 0.75 * Math.abs(Math.sin(Math.PI * sy * pr))); }
+    if (t < a.start - 0.05 || t > a.end + 0.1) continue;
+    for (let j = 0; j < a.wt.length; j++){
+      const ws = a.wt[j], we = wordEnd(a, j); if (t < ws || t >= we) continue;
+      const seq = visSeq(a.words[j]); const dur = we - ws;
+      let lastV = -1; seq.forEach((q, k) => { if (VOW.indexOf(q.v) >= 0) lastV = k; });
+      if (lastV >= 0 && dur > 0.5) seq[lastV].wt += (dur - 0.4) / 0.12;
+      const tot = seq.reduce((x, q) => x + q.wt, 0); const pos = (t - ws) / dur * tot; let acc = 0;
+      for (let k = 0; k < seq.length; k++){
+        const q = seq[k];
+        if (pos < acc + q.wt || k === seq.length - 1){
+          const f = clamp((pos - acc) / q.wt); const A = VIS[q.v], B = VIS[(seq[k + 1] || { v: 'X' }).v]; const m = f > 0.65 ? (f - 0.65) / 0.35 : 0;
+          let o = A[0] + (B[0] - A[0]) * m; const w = A[1] + (B[1] - A[1]) * m, rd = A[2] + (B[2] - A[2]) * m;
+          if (analyser && !audio.paused) o *= 0.75 + 0.5 * vocal;
+          return [clamp(o * S.mouthAmt, 0, 1.3), w, rd];
+        }
+        acc += q.wt;
+      }
     }
   }
-  if (analyser && !audio.paused && o > 0) o *= (0.6 + 0.8 * vocal);
-  return clamp(o) * S.mouthAmt;
+  return [0, 1, 0];
 }
+function blinkAmt(t){ const per = 3.4; const k = Math.floor(t / per); const ph = t - k * per - rnd(k, 5) * 1.8; return (ph >= 0 && ph < 0.18) ? Math.sin(Math.PI * ph / 0.18) : 0; }
 function drawAvatar(L, t, R){
   const img = imgs.avatar.img; const iw = img.naturalWidth || img.width, ih0 = img.naturalHeight || img.height; if (!iw || !ih0) return;
   const ih = ih0 * (isAnon('avatar') ? 0.9 : 1);
   const zf = S.avZoom || 1; const r = Math.max(W / iw, H / ih) * zf; const sw = W / r, sh = H / r;
   const sx0 = clamp(S.mouthX * iw - sw / 2, 0, Math.max(0, iw - sw)), sy0 = clamp(S.mouthY * ih0 - sh * 0.36, 0, Math.max(0, ih - sh));
-  const E = S.energy; const z = 1.03 + 0.012 * Math.sin(t * 1.3) + pulse * 0.025 * R; const rot = Math.sin(t * 1.9) * 0.012 * E;
+  const E = S.energy; let isCh = false;
+  for (const a of L){ if (t >= a.start && t <= a.end){ isCh = /chorus|refrain|hook|drop/i.test(secName(a.sec)); break; } }
+  const mim = S.mimic ? 1 : 0;
+  const z = 1.03 + 0.012 * Math.sin(t * 1.3) + pulse * (isCh ? 0.04 : 0.025) * R;
+  const rot = Math.sin(t * 1.9) * 0.012 * E + mim * Math.sin(t * 0.9) * 0.018 * E;
+  const nod = mim * pulse * R * (isCh ? 16 : 8);
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-  ctx.save(); ctx.translate(W / 2, H / 2 - 20); ctx.rotate(rot); ctx.scale(z, z);
+  ctx.save(); ctx.translate(W / 2 + mim * Math.sin(t * 0.7) * 10 * E, H / 2 - 20 + nod); ctx.rotate(rot); ctx.scale(z, z);
   ctx.drawImage(img, sx0, sy0, sw, sh, -W / 2, -H / 2, W, H);
   const toC = (x, y) => [(x - sx0) * r - W / 2, (y - sy0) * r - H / 2];
   const mx = S.mouthX * iw, my = S.mouthY * ih0, mw = S.mouthW * iw;
-  const o = mouthOpen(L, t);
+  if (S.mimic && S.eyes && S.eyes.length){
+    const bl = Date.now() < avTestUntil ? Math.max(0, Math.sin(Date.now() / 200)) : blinkAmt(t);
+    if (bl > 0.02) S.eyes.forEach(e => {
+      const c = toC(e.x * iw, e.y * ih0); const rx = e.w * iw * r * 0.62, ry = Math.max(4, e.h * ih0 * r * 0.62); const sk = e.skin || '#d9a58f';
+      ctx.save(); ctx.translate(c[0], c[1]); ctx.rotate(e.ang || 0);
+      const top = -ry * 1.3, lidY = top + ry * 2.6 * bl;
+      ctx.beginPath(); ctx.ellipse(0, 0, rx * 0.98, ry * 1.25, 0, 0, Math.PI * 2); ctx.clip();
+      const g = ctx.createLinearGradient(0, top, 0, lidY + 1); g.addColorStop(0, sk); g.addColorStop(1, mix(sk, '#000000', 0.12));
+      ctx.shadowColor = sk; ctx.shadowBlur = Math.max(4, ry * 0.6); ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(-rx, top); ctx.lineTo(rx, top); ctx.lineTo(rx, lidY - ry * 0.15); ctx.quadraticCurveTo(0, lidY + ry * 0.25, -rx, lidY - ry * 0.15); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(30,15,15,0.85)'; ctx.lineWidth = Math.max(2, ry * 0.22); ctx.beginPath(); ctx.moveTo(-rx, lidY - ry * 0.15); ctx.quadraticCurveTo(0, lidY + ry * 0.25, rx, lidY - ry * 0.15); ctx.stroke();
+      ctx.restore();
+    });
+  }
+  const shp = mouthShape(L, t); const o = shp[0], wf = shp[1], rd = shp[2];
   if (o > 0.02){
     const ang = S.mouthAng || 0;
     const chinS = S.chinH > 0 ? S.chinH * ih0 * 0.8 : mw * 1.9;
-    const c = toC(mx, my); const halfM = mw * 0.47 * r, dmax = o * mw * 0.5 * r, depth = dmax * 1.15;
-    const chin = Math.max(20, chinS * r), jw = mw * 1.9 * r;
+    const c = toC(mx, my); const halfM = mw * 0.47 * r * wf, dmax = o * mw * 0.5 * r, depth = dmax * 1.15;
+    const chin = Math.max(20, chinS * r), jw = mw * 1.9 * r * (0.8 + 0.2 * wf);
     ctx.save(); ctx.translate(c[0], c[1]); ctx.rotate(ang);
     ctx.save();
-    ctx.beginPath(); ctx.moveTo(-halfM, 0); ctx.bezierCurveTo(-halfM * 0.6, depth * 1.35, halfM * 0.6, depth * 1.35, halfM, 0);
-    ctx.bezierCurveTo(halfM * 0.5, -depth * 0.12, -halfM * 0.5, -depth * 0.12, -halfM, 0); ctx.closePath();
+    ctx.beginPath();
+    if (rd > 0.5) ctx.ellipse(0, depth * 0.52, halfM * 0.8, depth * 0.62 + 1, 0, 0, Math.PI * 2);
+    else { ctx.moveTo(-halfM, 0); ctx.bezierCurveTo(-halfM * 0.6, depth * 1.35, halfM * 0.6, depth * 1.35, halfM, 0);
+      ctx.bezierCurveTo(halfM * 0.5, -depth * 0.12, -halfM * 0.5, -depth * 0.12, -halfM, 0); ctx.closePath(); }
     ctx.shadowColor = 'rgba(40,8,14,0.9)'; ctx.shadowBlur = 6; ctx.fillStyle = '#2b0a10'; ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
-    if (o > 0.35){ ctx.fillStyle = 'rgba(242,234,226,' + (0.2 + 0.35 * o) + ')'; ctx.fillRect(-halfM, -depth * 0.3, halfM * 2, depth * 0.48); }
+    if (o > 0.35 && rd < 0.5){ ctx.fillStyle = 'rgba(246,238,230,' + (0.15 + 0.3 * o) + ')'; ctx.fillRect(-halfM, -depth * 0.3, halfM * 2, depth * 0.4); }
     ctx.fillStyle = 'rgba(170,60,72,0.6)'; ctx.beginPath(); ctx.ellipse(0, depth * 1.05, halfM * 0.42, depth * 0.3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
     const N = 40, stw = jw / N;
     for (let k = 0; k < N; k++){
-      const u0 = -jw / 2 + k * stw; const d = dmax * Math.pow(Math.sin(Math.PI * (k + 0.5) / N), 1.2);
+      const u0 = -jw / 2 + k * stw; const dF = q => dmax * Math.pow(Math.sin(Math.PI * clamp(q)), 1.2); const d = dF((k + 0.5) / N), dL = dF(k / N), dR = dF((k + 1) / N);
       if (chin - d < 3) continue;
-      ctx.save(); ctx.beginPath(); ctx.rect(u0, d, stw + 0.8, chin - d); ctx.clip();
+      ctx.save(); ctx.beginPath(); ctx.moveTo(u0 - 0.4, dL); ctx.lineTo(u0 + stw + 0.4, dR); ctx.lineTo(u0 + stw + 0.4, chin); ctx.lineTo(u0 - 0.4, chin); ctx.closePath(); ctx.clip();
       ctx.translate(0, d); ctx.scale(1, (chin - d) / chin); ctx.rotate(-ang); ctx.translate(-c[0], -c[1]);
       ctx.drawImage(img, sx0, sy0, sw, sh, -W / 2, -H / 2, W, H); ctx.restore();
     }
@@ -1106,6 +1197,12 @@ async function detectMouth(){
     S.mouthW = Math.hypot((Rr.x - L.x) * iw, (Rr.y - L.y) * ih) / iw;
     S.mouthAng = Math.atan2((Rr.y - L.y) * ih, (Rr.x - L.x) * iw);
     S.chinH = Math.max(0.01, chin.y - S.mouthY);
+    const eye = (c1, c2, u, d) => { const A = g(c1), B = g(c2), Up = g(u), Dn = g(d);
+      return { x: (A.x + B.x) / 2, y: (Up.y + Dn.y) / 2, w: Math.hypot((B.x - A.x) * iw, (B.y - A.y) * ih) / iw, h: Math.max(0.002, Dn.y - Up.y), ang: Math.atan2((B.y - A.y) * ih, (B.x - A.x) * iw), uy: Up.y }; };
+    S.eyes = [eye(33, 133, 159, 145), eye(362, 263, 386, 374)];
+    try { const scv = document.createElement('canvas'); scv.width = iw; scv.height = ih; const sx = scv.getContext('2d'); sx.drawImage(im, 0, 0);
+      S.eyes.forEach(e => { const px = Math.round(e.x * iw), py = Math.round((e.uy - e.h * 1.2) * ih); const d = sx.getImageData(Math.max(0, px - 3), Math.max(0, py - 3), 7, 7).data;
+        let r1 = 0, g1 = 0, b1 = 0, nn = 0; for (let i = 0; i < d.length; i += 4){ r1 += d[i]; g1 += d[i + 1]; b1 += d[i + 2]; nn++; } e.skin = rgbHex(r1 / nn, g1 / nn, b1 / nn); }); } catch (er) {}
     const faceH = Math.max(10, (chin.y - top.y) * ih); const ihC = ih * (isAnon('avatar') ? 0.9 : 1);
     const rc = Math.max(W / iw, H / ihC); S.avZoom = clamp(0.4 * H / (faceH * rc), 1, 2.6);
     save(); bump(); renderAvatarUI(); setAvStat('Mund erkannt ✓'); avTestUntil = Date.now() + 2200; return true;
@@ -1232,7 +1329,239 @@ function renderAvatarUI(){
   $('avImg').src = has ? imgs.avatar.url : ''; $('avBox').classList.toggle('empty', !has);
   $('avMouthCard').style.display = has ? '' : 'none';
   const mk = $('avMark'); mk.style.left = (S.mouthX * 100) + '%'; mk.style.top = (S.mouthY * 100) + '%'; mk.style.width = (S.mouthW * 100) + '%'; mk.style.transform = 'translate(-50%,-50%) rotate(' + (S.mouthAng || 0) + 'rad)';
-  $('tAv').checked = S.avatar; $('inAvDesc').value = S.avDesc; $('inMW').value = S.mouthW; $('inAZ').value = S.avZoom || 1; $('inMA').value = S.mouthAmt; $('maV').textContent = Math.round(S.mouthAmt * 100) + ' %';
+  $('tAv').checked = S.avatar; $('tMimic').checked = S.mimic; $('inAvDesc').value = S.avDesc; $('inMW').value = S.mouthW; $('inAZ').value = S.avZoom || 1; $('inMA').value = S.mouthAmt; $('maV').textContent = Math.round(S.mouthAmt * 100) + ' %';
+}
+
+/* ================= Local AI (Whisper / Depth) ================= */
+const AI_WORKER = `
+let T = null, asr = null, asrModel = '', depth = null;
+async function lib(){ if (!T){ T = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3'); T.env.allowLocalModels = false; } return T; }
+const prog = id => p => { if (p.status === 'progress' && p.total) self.postMessage({ id, type: 'load', file: p.file, loaded: p.loaded, total: p.total }); };
+async function mk(task, model, id){ const L = await lib(); return await L.pipeline(task, model, { dtype: 'q8', device: 'wasm', progress_callback: prog(id) }); }
+self.onmessage = async e => { const d = e.data;
+  try {
+    if (d.cmd === 'asr'){
+      if (!asr || asrModel !== d.model){ asr = await mk('automatic-speech-recognition', d.model, d.id); asrModel = d.model; }
+      self.postMessage({ id: d.id, type: 'status', msg: 'run' });
+      const opt = { return_timestamps: 'word', chunk_length_s: 30, stride_length_s: 5, task: 'transcribe' }; if (d.lang) opt.language = d.lang;
+      const out = await asr(d.audio, opt);
+      self.postMessage({ id: d.id, type: 'done', chunks: out.chunks || [], text: out.text || '' });
+    } else if (d.cmd === 'depth'){
+      if (!depth) depth = await mk('depth-estimation', 'onnx-community/depth-anything-v2-small', d.id);
+      self.postMessage({ id: d.id, type: 'status', msg: 'run' });
+      const L = await lib(); const img = new L.RawImage(d.data, d.w, d.h, 4); const out = await depth(img); const dp = out.depth;
+      const arr = new Uint8Array(dp.data);
+      self.postMessage({ id: d.id, type: 'done', w: dp.width, h: dp.height, data: arr }, [arr.buffer]);
+    }
+  } catch (err) { self.postMessage({ id: d.id, type: 'error', msg: String(err && err.message || err) }); }
+};`;
+let aiW = null, aiSeq = 0; const aiCb = {};
+function ai(msg, onProg){
+  if (!aiW){
+    aiW = new Worker(URL.createObjectURL(new Blob([AI_WORKER], { type: 'text/javascript' })), { type: 'module' });
+    aiW.onmessage = e => { const d = e.data, cb = aiCb[d.id]; if (!cb) return;
+      if (d.type === 'done'){ delete aiCb[d.id]; cb.res(d); } else if (d.type === 'error'){ delete aiCb[d.id]; cb.rej(new Error(d.msg)); } else if (cb.prog) cb.prog(d); };
+    aiW.onerror = e => { const err = new Error(e.message || 'KI-Fehler'); Object.keys(aiCb).forEach(k => { aiCb[k].rej(err); delete aiCb[k]; }); try { aiW.terminate(); } catch (er) {} aiW = null; };
+  }
+  const id = ++aiSeq; msg.id = id;
+  return new Promise((res, rej) => { aiCb[id] = { res: res, rej: rej, prog: onProg }; const tr = []; if (msg.audio) tr.push(msg.audio.buffer); if (msg.data) tr.push(msg.data.buffer); aiW.postMessage(msg, tr); });
+}
+function loadTracker(setText, barEl){
+  const files = {};
+  return d => {
+    if (d.type === 'load'){ files[d.file] = [d.loaded, d.total]; let a = 0, b = 0; for (const k in files){ a += files[k][0]; b += files[k][1]; }
+      const pc = b ? a / b : 0; setText('lade KI ' + Math.round(pc * 100) + ' % (' + Math.round(b / 1048576) + ' MB)'); if (barEl) barEl.style.width = (pc * 100).toFixed(0) + '%'; }
+    else if (d.type === 'status') setText('analysiere …');
+  };
+}
+async function toPCM16k(buf){
+  const AC = window.AudioContext || window.webkitAudioContext; const ac = new AC();
+  const dec = await new Promise((res, rej) => { const pr = ac.decodeAudioData(buf, res, rej); if (pr && pr.then) pr.then(res, rej); });
+  try { ac.close(); } catch (e) {}
+  try {
+    const off = new OfflineAudioContext(1, Math.ceil(dec.duration * 16000), 16000);
+    const src = off.createBufferSource(); src.buffer = dec;
+    const hp = off.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 150;
+    const lp = off.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000;
+    src.connect(hp); hp.connect(lp); lp.connect(off.destination); src.start();
+    const r = await off.startRendering(); return new Float32Array(r.getChannelData(0));
+  } catch (e) {
+    const c0 = dec.getChannelData(0), c1 = dec.numberOfChannels > 1 ? dec.getChannelData(1) : c0; const ratio = dec.sampleRate / 16000;
+    const out = new Float32Array(Math.floor(dec.length / ratio)); for (let i = 0; i < out.length; i++){ const k = Math.floor(i * ratio); out[i] = (c0[k] + c1[k]) / 2; } return out;
+  }
+}
+function normW(w){ return String(w).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss').replace(/[^a-z0-9]/g, ''); }
+function lev(a, b){ const m = a.length, n = b.length; if (!m) return n; if (!n) return m; let prev = []; for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= m; i++){ const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; } return prev[n]; }
+function wsim(a, b){ if (!a || !b) return 0; if (a === b) return 1; return 1 - lev(a, b) / Math.max(a.length, b.length); }
+function alignLyrics(chunks){
+  const rec = [];
+  chunks.forEach(c => { const ts = c.timestamp || []; let t0 = ts[0], t1 = ts[1]; if (t0 == null) return; if (t1 == null) t1 = t0 + 0.3; if (t1 - t0 > 1.2) t0 = t1 - 0.5;
+    const parts = String(c.text || '').trim().split(/\s+/).filter(Boolean);
+    parts.forEach((q, k) => { const nw = normW(q); if (nw) rec.push({ w: nw, t0: t0 + (t1 - t0) * k / parts.length, t1: t0 + (t1 - t0) * (k + 1) / parts.length }); }); });
+  const lyr = []; lines.forEach((l, i) => { l.text.split(/\s+/).filter(Boolean).forEach((w, j) => lyr.push({ i: i, j: j, w: normW(w) })); });
+  const n = lyr.length, m = rec.length; if (!n || !m) return { lines: 0, words: 0 };
+  const M1 = m + 1; const Sc = new Float32Array((n + 1) * M1), Bk = new Uint8Array((n + 1) * M1);
+  for (let i = 1; i <= n; i++){ Sc[i * M1] = -0.4 * i; Bk[i * M1] = 1; } for (let j = 1; j <= m; j++){ Sc[j] = -0.2 * j; Bk[j] = 2; }
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++){
+    const sm = wsim(lyr[i - 1].w, rec[j - 1].w); const d = Sc[(i - 1) * M1 + j - 1] + (sm >= 0.5 ? sm * 2 : -0.8); const u = Sc[(i - 1) * M1 + j] - 0.4; const l = Sc[i * M1 + j - 1] - 0.2;
+    if (d >= u && d >= l){ Sc[i * M1 + j] = d; Bk[i * M1 + j] = 0; } else if (u >= l){ Sc[i * M1 + j] = u; Bk[i * M1 + j] = 1; } else { Sc[i * M1 + j] = l; Bk[i * M1 + j] = 2; }
+  }
+  let i = n, j = m; let words = 0;
+  while (i > 0 || j > 0){ const b = (i > 0 && j > 0) ? Bk[i * M1 + j] : (i > 0 ? 1 : 2);
+    if (b === 0){ if (wsim(lyr[i - 1].w, rec[j - 1].w) >= 0.5){ lyr[i - 1].t0 = rec[j - 1].t0; lyr[i - 1].t1 = rec[j - 1].t1; words++; } i--; j--; } else if (b === 1) i--; else j--; }
+  if (!words) return { lines: 0, words: 0 };
+  const anchor = lyr.map(x => x.t0 != null);
+  for (let k = 0; k < n; k++){
+    if (anchor[k]) continue; let a = -1, b = -1;
+    for (let q = k - 1; q >= 0; q--) if (anchor[q]){ a = q; break; } for (let q = k + 1; q < n; q++) if (anchor[q]){ b = q; break; }
+    let t;
+    if (a >= 0 && lyr[a].i === lyr[k].i) t = lyr[a].t1 + 0.3 * (k - a - 1);
+    else if (b >= 0 && lyr[b].i === lyr[k].i) t = lyr[b].t0 - 0.3 * (b - k);
+    else if (a >= 0 && b >= 0) t = lyr[a].t1 + (lyr[b].t0 - lyr[a].t1) * (k - a) / (b - a);
+    else if (a >= 0) t = lyr[a].t1 + 0.35 * (k - a - 1); else t = lyr[b].t0 - 0.35 * (b - k);
+    lyr[k].t0 = Math.max(0, t); lyr[k].t1 = lyr[k].t0 + 0.3;
+  }
+  let good = 0, prevT = -1;
+  lines.forEach((l, li) => {
+    const ws = lyr.filter(x => x.i === li); if (!ws.length) return;
+    const wt = [], we = []; ws.forEach((x, k) => { let v = x.t0; if (k && v < wt[k - 1] + 0.05) v = wt[k - 1] + 0.05; wt.push(Math.round(v * 100) / 100); we.push(Math.round(Math.max(v + 0.08, x.t1) * 100) / 100); });
+    if (wt[0] <= prevT + 0.15){ const dlt = prevT + 0.15 - wt[0]; for (let k = 0; k < wt.length; k++){ wt[k] += dlt; we[k] += dlt; } }
+    l.t = wt[0]; l.wt = wt; l.we = we; l.end = null; prevT = wt[0];
+    if (ws.some((x, k) => anchor[lyr.indexOf(x)])) good++;
+  });
+  return { lines: good, words: words };
+}
+let asrBusy = false;
+async function autoSync(){
+  if (asrBusy) return;
+  if (!audioURL) return toast('Erst einen Song laden (Tab 01)');
+  if (!lines.length) return toast('Erst Lyrics einfügen (Tab 01)');
+  if (lines.some(l => l.t != null) && !confirm('Vorhandenes Timing wird überschrieben. Fortfahren?')) return;
+  asrBusy = true; const btn = $('btnAuto'); btn.disabled = true; $('asrBarW').style.display = 'block'; $('asrBar').style.width = '0%';
+  const st = m => { $('asrStat').textContent = m; };
+  const t0 = Date.now(); let tick = null;
+  try {
+    st('bereite Audio vor …');
+    const buf = await (await fetch(audioURL)).arrayBuffer();
+    const pcm = await toPCM16k(buf);
+    const model = S.asrModel === 'tiny' ? 'onnx-community/whisper-tiny_timestamped' : 'onnx-community/whisper-base_timestamped';
+    const tr = loadTracker(st, $('asrBar'));
+    const res = await ai({ cmd: 'asr', audio: pcm, model: model, lang: S.asrLang === 'auto' ? '' : S.asrLang }, d => {
+      tr(d); if (d.type === 'status'){ $('asrBar').style.width = '100%'; const s0 = Date.now(); clearInterval(tick); tick = setInterval(() => st('analysiere … ' + Math.round((Date.now() - s0) / 1000) + ' s'), 1000); } });
+    clearInterval(tick);
+    const r = alignLyrics(res.chunks || []);
+    if (!r.words){ st('nichts erkannt'); toast('Kein Gesang erkannt – Sprache prüfen oder manuell tippen'); return; }
+    S.shift = 0; $('inShift').value = 0; $('shiftV').textContent = '0,00 s';
+    bump(); save(); renderSyncList(); refreshExport();
+    st(r.lines + ' / ' + lines.length + ' Zeilen erkannt');
+    toast('Fertig in ' + Math.round((Date.now() - t0) / 1000) + ' s – bitte kurz prüfen');
+  } catch (e) { console.warn(e); st('Fehler'); toast('Erkennung fehlgeschlagen: ' + String(e.message || e).slice(0, 80)); }
+  finally { clearInterval(tick); asrBusy = false; btn.disabled = false; setTimeout(() => { $('asrBarW').style.display = 'none'; }, 1500); }
+}
+
+/* ================= Depth (2.5D) ================= */
+const depthMaps = {}, depthL = new Map(); let depthBusy = false;
+function buildDepthLayers(img, dm){
+  const w = Math.round((img.naturalWidth || img.width) * 0.5), h = Math.round((img.naturalHeight || img.height) * 0.5);
+  const bc = mkC(w, h); const bx = bc.getContext('2d'); bx.drawImage(img, 0, 0, w, h); const src = bx.getImageData(0, 0, w, h).data;
+  const dc = mkC(dm.w, dm.h); const dx = dc.getContext('2d'); const id = dx.createImageData(dm.w, dm.h);
+  for (let i = 0; i < dm.w * dm.h; i++){ const v = dm.data[i]; id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = 255; }
+  dx.putImageData(id, 0, 0); const uc = mkC(w, h); const ux = uc.getContext('2d'); ux.imageSmoothingQuality = 'high'; ux.drawImage(dc, 0, 0, w, h); const dd = ux.getImageData(0, 0, w, h).data;
+  const hist = new Uint32Array(256); for (let i = 0; i < w * h; i++) hist[dd[i * 4]]++;
+  const pct = q => { let acc = 0; const tg = q * w * h; for (let v = 0; v < 256; v++){ acc += hist[v]; if (acc >= tg) return v; } return 255; };
+  return [pct(0.55), pct(0.75), pct(0.9)].map(th => {
+    const c = mkC(w, h), x = c.getContext('2d'), o = x.createImageData(w, h), od = o.data;
+    for (let i = 0; i < w * h; i++){ const a = clamp((dd[i * 4] - (th - 10)) / 20); if (a > 0){ const q = i * 4; od[q] = src[q]; od[q + 1] = src[q + 1]; od[q + 2] = src[q + 2]; od[q + 3] = a * 255; } }
+    x.putImageData(o, 0, 0); return c; });
+}
+function depthImg(k){ return k === 'cover' ? coverImg : (imgs[k] && imgs[k].img); }
+const depthQueue = new Set(); let depthBuilding = false;
+function getDepth(k){
+  if (!S.fxDepth || !depthMaps[k]) return null;
+  if (depthL.has(k)){ const v = depthL.get(k); depthL.delete(k); depthL.set(k, v); return v; }
+  if (exporting){ return null; }
+  depthQueue.add(k); if (!depthBuilding) setTimeout(buildQueued, 0); return null;
+}
+function buildQueued(){
+  depthBuilding = true; const it = depthQueue.values().next(); if (it.done){ depthBuilding = false; return; }
+  const k = it.value; depthQueue.delete(k); const im = depthImg(k);
+  if (im && depthMaps[k] && !depthL.has(k)){ try { depthL.set(k, buildDepthLayers(im, depthMaps[k])); while (depthL.size > 10) depthL.delete(depthL.keys().next().value); dirty = true; } catch (e) { console.warn(e); } }
+  setTimeout(buildQueued, 30);
+}
+function prebuildDepth(){ if (!S.fxDepth) return; const L = getTimeline(); const ks = new Set(); L.forEach(a => ks.add(bgKeyFor(a))); ks.forEach(k => { if (k.indexOf('pack:') !== 0 && depthMaps[k] && !depthL.has(k)) depthQueue.add(k); }); if (!depthBuilding) setTimeout(buildQueued, 0); }
+async function computeDepth(){
+  if (depthBusy) return;
+  const keys = Object.keys(imgs).filter(k => k !== 'avatar' && imgs[k].img); if (coverImg) keys.push('cover');
+  if (!keys.length) return toast('Noch keine Bilder vorhanden');
+  depthBusy = true; $('btnDepth').disabled = true; const st = m => { $('depthStat').textContent = m; };
+  let n = 0;
+  try {
+    for (const k of keys){
+      const im = depthImg(k); if (!im) continue;
+      const sc = Math.min(1, 392 / (im.naturalWidth || im.width)); const w = Math.round((im.naturalWidth || im.width) * sc), h = Math.round((im.naturalHeight || im.height) * sc);
+      const c = mkC(w, h); const x = c.getContext('2d'); x.drawImage(im, 0, 0, w, h); const data = new Uint8ClampedArray(x.getImageData(0, 0, w, h).data);
+      const tr = loadTracker(st, null);
+      const r = await ai({ cmd: 'depth', data: data, w: w, h: h }, d => { tr(d); if (d.type === 'status') st('Bild ' + (n + 1) + ' / ' + keys.length + ' …'); });
+      const dm = { w: r.w, h: r.h, data: r.data }; depthMaps[k] = dm; depthL.delete(k); await dbSet('depth:' + k, dm); n++;
+      st(n + ' / ' + keys.length + ' fertig');
+    }
+    S.fxDepth = true; $('tDepth').checked = true; save(); prebuildDepth(); toast('3D-Tiefe fertig ✓');
+  } catch (e) { console.warn(e); st('Fehler'); toast('Tiefe fehlgeschlagen: ' + String(e.message || e).slice(0, 80)); }
+  finally { depthBusy = false; $('btnDepth').disabled = false; }
+}
+
+/* ================= Motion FX ================= */
+const FLOAT_TYPES = { paper:['scrap','tape','scrap','asterisk','circle'], cartoon:['star','heart','spark','squiggle','burst'], neon:['ring','triangle','zig','spark'], editorial:['line','circle','asterisk','arrow'], street:['x','arrow','crown','tape','zig'] };
+function drawFloatFX(t, R){
+  const types = FLOAT_TYPES[S.pack] || FLOAT_TYPES.cartoon; const N = 9; const span = W + 400;
+  for (let i = 0; i < N; i++){
+    const sp = (10 + rnd(i, 12) * 22) * (i % 2 ? 1 : -1);
+    const x = ((rnd(i, 11) * span + t * sp) % span + span) % span - 200; const y = 200 + rnd(i, 13) * 1500 + Math.sin(t * 0.4 + i) * 40;
+    const type = types[i % types.length]; const sz = 60 + rnd(i, 14) * 90; const col = S.pack === 'paper' ? (i % 2 ? ps().light : '#F4ECD6') : pal(i);
+    ctx.save(); ctx.globalAlpha = S.pack === 'paper' ? 0.8 : 0.45; ctx.translate(x, y); ctx.rotate(rnd(i, 15) * 6.28 + t * (rnd(i, 16) - 0.5) * 0.6);
+    const z = 1 + pulse * 0.12 * R; ctx.scale(z, z);
+    if (type === 'tape' && S.pack === 'paper') ctx.drawImage(tapeTex, -sz * 0.9, -sz * 0.2, sz * 1.8, sz * 0.4); else drawShape(type, sz, 1, col);
+    ctx.restore();
+  }
+}
+function drawParticlesFX(t, R){
+  const kind = { cartoon:'confetti', neon:'spark', editorial:'dust', street:'spark', paper:'confetti' }[S.pack] || 'dust';
+  ctx.save();
+  if (!(S.pack === 'editorial' && !bgIsImage)){
+    ctx.globalCompositeOperation = 'screen';
+    for (let k = 0; k < 2; k++){
+      const x = W * (0.5 + 0.45 * Math.sin(t * 0.07 + k * 2.4)), y = H * (0.45 + 0.35 * Math.cos(t * 0.05 + k * 1.3));
+      const col = S.pack === 'paper' ? ps().light : S.pack === 'neon' ? pal(k) : '#FFB36B';
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 700); g.addColorStop(0, rgba(col, 0.1 + 0.08 * pulse * R)); g.addColorStop(1, rgba(col, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+  }
+  ctx.globalCompositeOperation = kind === 'spark' ? 'lighter' : 'source-over';
+  const N = kind === 'dust' ? 60 : 44; const HH = H + 200;
+  for (let i = 0; i < N; i++){
+    const sp = (kind === 'dust' ? 12 : kind === 'spark' ? 70 : 90) * (0.5 + rnd(i, 2)); const dir = kind === 'spark' ? -1 : 1;
+    const y = ((rnd(i, 4) * HH + dir * t * sp) % HH + HH) % HH - 100; const x = rnd(i, 1) * W + Math.sin(t * (0.5 + rnd(i, 6)) + i) * 40;
+    const z = 1 + pulse * 0.9 * R * rnd(i, 7);
+    if (kind === 'confetti'){ const s = 10 + rnd(i, 3) * 12; ctx.save(); ctx.translate(x, y); ctx.rotate(t * (1 + rnd(i, 5) * 3) + i); ctx.scale(z, z * (Math.abs(Math.sin(t * 3 + i)) + 0.2));
+      ctx.globalAlpha = 0.85; ctx.fillStyle = S.pack === 'paper' ? (i % 3 ? ps().light : '#F4ECD6') : pal(i); ctx.fillRect(-s / 2, -s / 3, s, s * 0.66); ctx.restore(); }
+    else if (kind === 'spark'){ const s = (2 + rnd(i, 3) * 4) * z; ctx.globalAlpha = 0.5 + 0.5 * Math.sin(t * 4 + i); ctx.fillStyle = pal(i); ctx.beginPath(); ctx.arc(x, y, s, 0, 6.283); ctx.fill(); ctx.globalAlpha *= 0.3; ctx.beginPath(); ctx.arc(x, y, s * 4, 0, 6.283); ctx.fill(); }
+    else { const s = (1.5 + rnd(i, 3) * 2.5) * z; ctx.globalAlpha = 0.25 + 0.25 * Math.sin(t + i); ctx.fillStyle = (S.pack === 'editorial' && !bgIsImage) ? '#141414' : '#ffffff'; ctx.beginPath(); ctx.arc(x, y, s, 0, 6.283); ctx.fill(); }
+  }
+  ctx.restore();
+}
+function drawViz(R){
+  let mx = 0; for (let b = 0; b < bands.length; b++) mx = Math.max(mx, bands[b]); if (mx < 0.01) return;
+  const NB = bands.length, x0 = 110, w = 860, bw = w / NB, base = 1730, hMax = 170;
+  ctx.save();
+  for (let b = 0; b < NB; b++){
+    const v = Math.pow(bands[b], 1.6); const h = 6 + v * hMax; const x = x0 + b * bw + bw * 0.15, ww = bw * 0.7;
+    if (S.pack === 'neon'){ ctx.shadowColor = pal(b % 3); ctx.shadowBlur = 18; ctx.fillStyle = pal(b % 3); ctx.fillRect(x, base - 70 - h / 2, ww, h); }
+    else if (S.pack === 'cartoon'){ rr(ctx, x, base - h, ww, h, ww / 2); ctx.fillStyle = pal(b % 5); ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = pk().ink; ctx.stroke(); }
+    else if (S.pack === 'editorial'){ ctx.fillStyle = bgIsImage ? '#ffffff' : pk().ink; ctx.fillRect(x + ww * 0.4, base - h, ww * 0.2, h); }
+    else if (S.pack === 'street'){ const bl = Math.max(1, Math.round(h / 22)); for (let k = 0; k < bl; k++){ ctx.fillStyle = k >= bl - 1 ? pal(1) : pal(0); ctx.fillRect(x, base - (k + 1) * 22, ww, 18); } }
+    else { ctx.save(); ctx.translate(x + ww / 2, base - h / 2); ctx.rotate((rnd(b, 3) - 0.5) * 0.08); ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 6; ctx.fillStyle = b % 2 ? ps().light : '#F4ECD6'; ctx.fillRect(-ww / 2, -h / 2, ww, h); ctx.restore(); }
+  }
+  ctx.restore();
 }
 
 /* ================= Frame ================= */
@@ -1263,6 +1592,7 @@ function draw(t){
   else { drawBg(bg, t, R); bgIsImage = bg.key.indexOf('pack:') !== 0; }
   const darkText = (S.pack === 'editorial' || S.pack === 'cartoon' || S.pack === 'paper') && !bgIsImage;
   paperBig = S.pack === 'paper' && !bgIsImage;
+  if (S.fxFloat && !avatarActive()) drawFloatFX(t, R);
   if (S.pack === 'paper'){
     let cI = 0; for (let k = 0; k < L.length; k++){ if (L[k].start <= t) cI = k; else break; }
     const curSec = L.length ? L[cI].sec : 0; let secStart = 0;
@@ -1271,6 +1601,8 @@ function draw(t){
     drawNote(t, secStart, curSec);
   }
   const first = L.length ? L[0].start : Infinity;
+  if (S.fxViz) drawViz(R);
+  if (S.fxPart) drawParticlesFX(t, R);
   // intro
   const ia = introItem(first);
   if (ia && t < ia.end + 0.3){
@@ -1454,6 +1786,7 @@ function applyUI(){
   $('inHandle').value = S.handle; $('inReact').value = S.react; $('reactV').textContent = S.react + ' %';
   $('inShift').value = S.shift; $('shiftV').textContent = (S.shift > 0 ? '+' : '') + S.shift.toFixed(2).replace('.', ',') + ' s';
   $('inEp').value = S.endpoint; $('inKey').value = S.apiKey || '';
+  $('tPart').checked = S.fxPart; $('tFloat').checked = S.fxFloat; $('tViz').checked = S.fxViz; $('tDepth').checked = S.fxDepth; setSeg('segLang', S.asrLang); setSeg('segModel', S.asrModel);
   setSeg('segPack', S.pack); renderPaperSeg(); setSeg('segEnergy', S.energy); setSeg('segImg', S.imgMode); setSeg('segRange', S.range); setSeg('segLen', S.clipLen); setSeg('segRate', syncRate); setSeg('segSub', curSub);
   const gs = $('selGenre'); gs.innerHTML = Object.keys(GENRES).map(k => '<option value="' + k + '"' + (k === S.genre ? ' selected' : '') + '>' + GENRES[k].n + '</option>').join('');
   $('lineCount').textContent = lines.length ? lines.length + ' Zeilen · ' + (P.secs || []).length + ' Abschnitte' : '';
@@ -1511,7 +1844,7 @@ function renderPad(){
 function flash(){ const z = $('tapZone'); z.classList.add('hit'); setTimeout(() => z.classList.remove('hit'), 130); }
 function tap(){ if (!syncing || ptr >= lines.length) return;
   undoStack.push({ type: 't', i: ptr, t: lines[ptr].t, end: lines[ptr].end });
-  lines[ptr].t = Math.round(audio.currentTime * 100) / 100; lines[ptr].end = null; ptr++; flash(); renderPad(); bump(); }
+  lines[ptr].t = Math.round(audio.currentTime * 100) / 100; lines[ptr].end = null; lines[ptr].wt = null; lines[ptr].we = null; ptr++; flash(); renderPad(); bump(); }
 function endLine(){ const i = ptr - 1; if (!syncing || i < 0) return;
   undoStack.push({ type: 'e', i: i, end: lines[i].end }); lines[i].end = Math.round(audio.currentTime * 100) / 100; flash(); bump(); toast('Zeile ausgeblendet'); }
 function undo(){ const u = undoStack.pop(); if (!u) return;
@@ -1637,7 +1970,8 @@ function bindUI(){
   $('inShift').addEventListener('input', e => { S.shift = parseFloat(e.target.value); $('shiftV').textContent = (S.shift > 0 ? '+' : '') + S.shift.toFixed(2).replace('.', ',') + ' s'; bump(); save(); });
   $('syncList').addEventListener('click', e => {
     const row = e.target.closest('.ln'); if (!row) return; const i = +row.dataset.i; const btn = e.target.closest('button');
-    if (btn){ const l = lines[i]; if (l.t == null) return; l.t = Math.max(0, Math.round((l.t + (btn.dataset.act === 'p' ? 0.1 : -0.1)) * 100) / 100);
+    if (btn){ const l = lines[i]; if (l.t == null) return; const dl = btn.dataset.act === 'p' ? 0.1 : -0.1; l.t = Math.max(0, Math.round((l.t + dl) * 100) / 100);
+      if (l.wt) l.wt = l.wt.map(x => Math.max(0, x + dl)); if (l.we) l.we = l.we.map(x => Math.max(0, x + dl));
       row.querySelector('.tm').textContent = fmt(l.t, true); bump(); save(); return; }
     selLine = i; renderSyncList(); listenFrom(i);
   });
@@ -1697,6 +2031,15 @@ function bindUI(){
   const avEnd = () => { if (!avDrag) return; avDrag = false; bump(); save(); avTestUntil = Date.now() + 1500; };
   $('avBox').addEventListener('pointerup', avEnd); $('avBox').addEventListener('pointercancel', avEnd);
   $('btnAvDetect').addEventListener('click', () => detectMouth());
+  $('tMimic').addEventListener('change', e => { S.mimic = e.target.checked; save(); dirty = true; if (S.mimic && !S.eyes && imgs.avatar) detectMouth(); });
+  $('tPart').addEventListener('change', e => { S.fxPart = e.target.checked; save(); dirty = true; });
+  $('tFloat').addEventListener('change', e => { S.fxFloat = e.target.checked; save(); dirty = true; });
+  $('tViz').addEventListener('change', e => { S.fxViz = e.target.checked; save(); dirty = true; });
+  $('tDepth').addEventListener('change', e => { S.fxDepth = e.target.checked; save(); dirty = true; if (S.fxDepth) prebuildDepth(); });
+  $('btnDepth').addEventListener('click', computeDepth);
+  bindSeg('segLang', v => { S.asrLang = v; setSeg('segLang', v); save(); });
+  bindSeg('segModel', v => { S.asrModel = v; setSeg('segModel', v); save(); });
+  $('btnAuto').addEventListener('click', autoSync);
   $('inMW').addEventListener('input', e => { S.mouthW = parseFloat(e.target.value); renderAvatarUI(); dirty = true; save(); avTestUntil = Date.now() + 1200; });
   $('inAZ').addEventListener('input', e => { S.avZoom = parseFloat(e.target.value); dirty = true; save(); });
   $('inMA').addEventListener('input', e => { S.mouthAmt = parseFloat(e.target.value); renderAvatarUI(); dirty = true; save(); avTestUntil = Date.now() + 1200; });
@@ -1747,6 +2090,8 @@ async function init(){
   const cb = await dbGet('cover'); if (cb) await setCoverBlob(cb);
   const keys = await dbKeys();
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('img:') === 0){ const b = await dbGet(k); if (b) await setImgBlob(k.slice(4), b); } }
+  for (const k of keys){ if (typeof k === 'string' && k.indexOf('depth:') === 0){ const d = await dbGet(k); if (d && d.data) depthMaps[k.slice(6)] = d; } }
+  setTimeout(prebuildDepth, 1500);
   applyUI(); renderAvatarUI(); bump();
   requestAnimationFrame(loop);
   const fl = Object.keys(FONTS).map(k => document.fonts ? document.fonts.load(fnt(k, 100), 'AaÄß') : Promise.resolve());
