@@ -100,8 +100,15 @@ nav button.on small{color:var(--acc)}
 /* design */
 .stick{position:sticky;top:0;z-index:6;background:var(--bg);padding:env(safe-area-inset-top) 0 8px}
 .pv{display:flex;justify-content:center;padding:2px 0 8px}
-.pv canvas{height:min(36vh,420px);width:auto;aspect-ratio:9/16;border-radius:14px;background:#000;display:block;box-shadow:0 14px 40px rgba(0,0,0,.6);transition:height .25s}
-.pv.big canvas{height:min(68vh,760px)}
+.pv canvas{height:min(34vh,380px);width:auto;aspect-ratio:9/16;border-radius:14px;background:#000;display:block;box-shadow:0 14px 40px rgba(0,0,0,.6)}
+.pvov{align-items:center;justify-content:center;gap:14px}
+.pvo-hold canvas{height:min(76vh,860px);width:auto;aspect-ratio:9/16;border-radius:16px;background:#000;display:block}
+.pvo-bar{display:flex;gap:10px;width:min(340px,86vw);align-items:center}
+.pvo-bar .btn{flex:1}
+.avbox{position:relative;width:62%;margin:0 auto;touch-action:manipulation}
+.avbox img{width:100%;display:block;border-radius:12px;background:#0e0e10;min-height:120px}
+.avbox i{position:absolute;height:6px;border-radius:6px;background:var(--acc);box-shadow:0 0 0 2px #000;transform:translate(-50%,-50%);pointer-events:none}
+.avbox.empty i{display:none}
 .player{display:flex;align-items:center;gap:12px;margin:0 2px}
 .player .mono{font-size:12px;color:var(--mute);min-width:44px;text-align:right}
 .subseg{margin:6px 0 12px}
@@ -208,7 +215,7 @@ details.card[open] summary{margin-bottom:12px}
       <span class="mono" id="pvT">0:00</span>
     </div>
   </div>
-  <div class="seg subseg" id="segSub"><button data-v="look">Look</button><button data-v="img">Bilder</button><button data-v="lines">Zeilen</button></div>
+  <div class="seg subseg" id="segSub"><button data-v="look">Look</button><button data-v="img">Bilder</button><button data-v="avatar">Avatar</button><button data-v="lines">Zeilen</button></div>
 
   <div class="sub-p on" id="sub-look">
     <div class="card"><div class="lbl">Stil-Paket</div>
@@ -254,12 +261,36 @@ details.card[open] summary{margin-bottom:12px}
       <div class="hint mono" id="genStat"></div>
     </div>
     <div id="imgGrid" class="grid"></div>
+    <div class="card"><div class="lbl"><span>Pollinations-Key (optional)</span><span id="keyStat"></span></div>
+      <input type="text" id="inKey" placeholder="pk_…  (leer = Gratis-Modus)" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <p class="hint">Kostenloser Key über enter.pollinations.ai (anmelden, Key erstellen, einfügen). Mit Key: schneller und ohne Logo. Ohne Key wartet HOOK automatisch 16 s zwischen den Bildern und versucht es bei Fehlern erneut.</p>
+    </div>
     <details class="card"><summary>Erweitert · Bild-Dienst</summary>
       <input type="text" id="inEp" autocomplete="off">
       <p class="hint">Platzhalter: {prompt} {w} {h} {seed}. Standard ist Pollinations (kostenlos, ohne Konto).</p>
       <button class="btn sm ghost" id="epReset" style="margin-top:10px">Standard wiederherstellen</button>
     </details>
     <input type="file" id="fImg" accept="image/*" hidden>
+  </div>
+
+  <div class="sub-p" id="sub-avatar">
+    <div class="card">
+      <label class="tg"><span>Singender Avatar</span><input type="checkbox" id="tAv"><i></i></label>
+      <p class="hint">Der Avatar wird groß zum Hauptmotiv, die Lyrics wandern ins untere Drittel. Der Mund bewegt sich mit dem Gesang – angenähert über dein Timing, kein silbengenaues Lipsync.</p>
+    </div>
+    <div class="card"><div class="lbl">Charakter beschreiben</div>
+      <textarea id="inAvDesc" style="min-height:110px" placeholder="z. B. junge Frau mit pinken Locken und Lederjacke, selbstbewusst"></textarea>
+      <div class="row2" style="margin-top:10px"><button class="btn pri" id="btnAvGen">✦ Avatar erzeugen</button><button class="btn" id="btnAvPhoto">📷 Eigenes Bild</button></div>
+      <div class="hint mono" id="avStat"></div>
+    </div>
+    <div class="card" id="avMouthCard"><div class="lbl"><span>Mund markieren</span><span>antippen</span></div>
+      <div class="avbox empty" id="avBox"><img id="avImg" src="" alt=""><i id="avMark"></i></div>
+      <p class="hint">Tippe genau auf die Linie zwischen den Lippen, dann mit „Testen“ prüfen.</p>
+      <div class="lbl" style="margin-top:14px"><span>Zoom aufs Gesicht</span></div><input type="range" id="inAZ" min="1" max="2.6" step="0.05">
+      <div class="lbl" style="margin-top:10px"><span>Mundbreite</span></div><input type="range" id="inMW" min="0.04" max="0.24" step="0.005">
+      <div class="lbl" style="margin-top:10px"><span>Mundbewegung</span><span id="maV"></span></div><input type="range" id="inMA" min="0.2" max="1.2" step="0.05">
+      <button class="btn sm" id="btnAvTest" style="margin-top:10px">👄 Testen</button>
+    </div>
   </div>
 
   <div class="sub-p" id="sub-lines">
@@ -332,6 +363,11 @@ details.card[open] summary{margin-bottom:12px}
   <button class="btn" id="exCancel">Abbrechen</button>
 </div>
 
+<div class="ov pvov" id="pvOv">
+  <div class="pvo-hold" id="pvoHold"></div>
+  <div class="pvo-bar"><button class="play" id="pvoPlay">▶</button><button class="btn" id="pvoClose">Schließen</button></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -395,7 +431,8 @@ const EMO = [
 
 /* ================= State ================= */
 const DEF = { pack:'cartoon', palShift:0, energy:1, emojis:true, doodles:true, upper:true, showTitle:true, progress:false, handle:'', react:60,
-  shift:-0.15, range:'full', clipStart:0, clipLen:30, seed:0, genre:'pop', imgMode:'section', endpoint:DEF_EP };
+  shift:-0.15, range:'full', clipStart:0, clipLen:30, seed:0, genre:'pop', imgMode:'section', endpoint:DEF_EP,
+  apiKey:'', avatar:false, avDesc:'', mouthX:0.5, mouthY:0.38, mouthW:0.1, mouthAmt:0.8, avZoom:1.3 };
 let S = Object.assign({}, DEF);
 let P = { title:'', artist:'', lyricsRaw:'', audioName:'', secs:[], prompts:{}, seeds:{}, ai:{} };
 let lines = [];
@@ -464,7 +501,7 @@ function ensureGraph(){
     fdata = new Uint8Array(analyser.frequencyBinCount); actx.resume().catch(() => {}); return true;
   } catch (e) { console.warn(e); return false; }
 }
-let bassS = 0, bassSlow = 0, pulse = 0;
+let bassS = 0, bassSlow = 0, pulse = 0, vocal = 0.5, vocalSlow = 0;
 function updateBass(){
   if (!analyser || audio.paused){ pulse *= 0.88; return; }
   analyser.getByteFrequencyData(fdata);
@@ -472,6 +509,8 @@ function updateBass(){
   const b = s / 6 / 255;
   bassS += (b - bassS) * (b > bassS ? 0.6 : 0.15); bassSlow += (b - bassSlow) * 0.02;
   pulse += (clamp((bassS - bassSlow) * 5) - pulse) * 0.5;
+  let m = 0; for (let i = 6; i <= 60; i++) m += fdata[i]; m /= 55 * 255;
+  vocalSlow += (m - vocalSlow) * 0.01; vocal = clamp(0.5 + (m - vocalSlow) * 6);
 }
 
 /* ================= Lyrics ================= */
@@ -652,21 +691,24 @@ function buildScene(a){
   if (cy + L.box.y0 < 380) cy = 380 - L.box.y0;
   if (cy + L.box.y1 > 1530) cy = 1530 - L.box.y1;
   if (bh > 1150) cy = 950;
+  let kS = 1;
+  if (avatarActive()){ kS = Math.min(1, 560 / Math.max(1, bh), 1); cy = 1340 + (R(3) - 0.5) * 100;
+    cy = Math.max(cy, 1060 - L.box.y0 * kS); cy = Math.min(cy, 1650 - L.box.y1 * kS); }
   const rot = lay === 'diagonal' ? (R(4) < 0.5 ? -1 : 1) * 0.11 : lay === 'bubble' ? 0 : (R(4) - 0.5) * 2 * p.tilt;
   const np = p.palette.length;
   const kc = Math.floor(R(9) * np); let ac = Math.floor(R(11) * np); if (ac === kc) ac = (ac + 1) % np;
   const sc = { lay: lay, items: L.items, box: L.box, bubble: L.bubble || null, keyIdx: n ? keyIdx : -1, cx: 540, cy: cy, rot: rot,
     anim: lay === 'slam' ? 'fly' : lay === 'type' ? 'type' : p.anim,
-    keyCol: pal(kc), actCol: pal(ac), glowCol: pal(kc + 1), decoCol: pal(kc + 2), floaters: [], emoji: null, keyDeco: null };
+    keyCol: pal(kc), actCol: pal(ac), glowCol: pal(kc + 1), decoCol: pal(kc + 2), floaters: [], emoji: null, keyDeco: null, k: kS };
   if (S.pack === 'street') sc.actCol = '#FFFFFF';
   if (S.pack === 'cartoon' && lum(sc.keyCol) > 0.8) sc.keyCol = pal(kc + 1);
   if (S.doodles && n && a.i >= -1){
     sc.keyDeco = p.keyDeco[Math.floor(R(7) * p.keyDeco.length)];
-    const gx0 = sc.cx + L.box.x0 - 70, gx1 = sc.cx + L.box.x1 + 70, gy0 = cy + L.box.y0 - 70, gy1 = cy + L.box.y1 + 70;
+    const gx0 = sc.cx + L.box.x0 * kS - 70, gx1 = sc.cx + L.box.x1 * kS + 70, gy0 = cy + L.box.y0 * kS - 70, gy1 = cy + L.box.y1 * kS + 70; const av = avatarActive();
     const cnt = 2 + Math.floor(R(8) * 3);
     for (let k = 0; k < cnt; k++){
       for (let tr = 0; tr < 24; tr++){
-        const x = 120 + R(30 + k * 31 + tr) * 840, y = 300 + R(31 + k * 37 + tr * 3) * 1320;
+        const x = 120 + R(30 + k * 31 + tr) * 840, y = av ? 1000 + R(31 + k * 37 + tr * 3) * 680 : 300 + R(31 + k * 37 + tr * 3) * 1320;
         if (x > gx0 && x < gx1 && y > gy0 && y < gy1) continue;
         sc.floaters.push({ type: p.doodles[Math.floor(R(10 + k) * p.doodles.length)], x: x, y: y, size: 55 + R(20 + k) * 75, col: pal(Math.floor(R(40 + k) * np)),
           delay: 0.05 + k * 0.13, rot: R(50 + k) * 6.28, spin: (R(60 + k) - 0.5) * 0.8, ph: R(70 + k) * 6 });
@@ -677,9 +719,9 @@ function buildScene(a){
   const emo = m.emo === '-' ? '' : (m.emo || (S.emojis ? autoEmoji(a.rawWords) : ''));
   if (emo){
     let ex, ey;
-    if (sc.bubble){ ex = sc.cx + (sc.bubble.side < 0 ? sc.bubble.x1 + 30 : sc.bubble.x0 - 30); ey = cy + sc.bubble.y0 - 20; }
-    else { ex = sc.cx + (R(41) < 0.5 ? L.box.x0 + 40 : L.box.x1 - 40); ey = cy + L.box.y0 - 90; }
-    sc.emoji = { ch: emo, x: clamp(ex, 110, 970), y: clamp(ey, 300, 1620), size: 150 };
+    if (sc.bubble){ ex = sc.cx + (sc.bubble.side < 0 ? sc.bubble.x1 + 30 : sc.bubble.x0 - 30) * kS; ey = cy + sc.bubble.y0 * kS - 20; }
+    else { ex = sc.cx + (R(41) < 0.5 ? L.box.x0 + 40 : L.box.x1 - 40) * kS; ey = cy + L.box.y0 * kS - 90; }
+    sc.emoji = { ch: emo, x: clamp(ex, 110, 970), y: clamp(ey, avatarActive() ? 980 : 300, 1620), size: 150 };
   }
   return sc;
 }
@@ -834,7 +876,7 @@ function drawScene(a, sc, lt, R){
   const ps = 1 + pulse * 0.04 * R;
   // block
   ctx.save();
-  ctx.translate(sc.cx, sc.cy + ex.y); ctx.rotate(sc.rot + ex.r); ctx.scale(ex.s * ps, ex.s * ps);
+  ctx.translate(sc.cx, sc.cy + ex.y); ctx.rotate(sc.rot + ex.r); ctx.scale(ex.s * ps * (sc.k || 1), ex.s * ps * (sc.k || 1));
   ctx.globalAlpha = ex.a;
   if (sc.bubble) drawBubble(sc, inP);
   else if (S.pack === 'editorial' && bgIsImage) drawPanel(sc, inP);
@@ -921,7 +963,7 @@ function drawImgBg(img, key, seg, t, R){
   const sk = hashStr(key); const q = clamp((t - seg) / 22); const z = 1.06 + 0.12 * q + pulse * 0.03 * R;
   const dir = sk % 4; const px = [-1, 1, 0, 0][dir] * 40 * q, py = [0, 0, -1, 1][dir] * 60 * q;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-  ctx.save(); ctx.translate(W / 2 + px, H / 2 + py); ctx.scale(z, z); drawFit(ctx, img, -W / 2, -H / 2, W, H, (P.ai && P.ai[key]) ? 0.1 : 0); ctx.restore();
+  ctx.save(); ctx.translate(W / 2 + px, H / 2 + py); ctx.scale(z, z); drawFit(ctx, img, -W / 2, -H / 2, W, H, isAnon(key) ? 0.1 : 0); ctx.restore();
   const ov = { cartoon: 0.1, neon: 0.42, editorial: 0.05, street: 0.35 }[S.pack] || 0.2;
   ctx.fillStyle = 'rgba(0,0,0,' + ov + ')'; ctx.fillRect(0, 0, W, H);
   if (S.pack === 'neon'){ ctx.fillStyle = rgba(pal(0), 0.12 + 0.1 * pulse * R); ctx.fillRect(0, 0, W, H); }
@@ -950,6 +992,66 @@ function drawBg(bg, t, R){
   } else drawBgKey(bg.key, bg.seg, t, R);
 }
 
+/* ================= Avatar ================= */
+const isAnon = k => !!(P.ai && (P.ai[k] === 'anon' || P.ai[k] === true));
+function avatarActive(){ return !!(S.avatar && imgs.avatar && imgs.avatar.img); }
+let avTestUntil = 0;
+function sylCount(w){ const m = String(w).toLowerCase().match(/[aeiouyäöü]+/g); return m ? m.length : 1; }
+function mouthOpen(L, t){
+  if (Date.now() < avTestUntil) return (0.5 + 0.5 * Math.sin(Date.now() / 85)) * S.mouthAmt;
+  let o = 0;
+  for (const a of L){
+    if (t < a.start - 0.02 || t > a.end) continue;
+    const n = a.wt.length;
+    for (let j = 0; j < n; j++){
+      const ws = a.wt[j]; const sy = sylCount(a.words[j]);
+      let we = j + 1 < n ? a.wt[j + 1] : Math.min(a.end - 0.05, ws + 0.25 * sy + 0.35); if (we <= ws + 0.08) we = ws + 0.08;
+      if (t >= ws && t < we){ const pr = (t - ws) / (we - ws); o = Math.max(o, 0.25 + 0.75 * Math.abs(Math.sin(Math.PI * sy * pr))); }
+    }
+  }
+  if (analyser && !audio.paused && o > 0) o *= (0.6 + 0.8 * vocal);
+  return clamp(o) * S.mouthAmt;
+}
+function drawAvatar(L, t, R){
+  const img = imgs.avatar.img; const iw = img.naturalWidth || img.width, ih0 = img.naturalHeight || img.height; if (!iw || !ih0) return;
+  const ih = ih0 * (isAnon('avatar') ? 0.9 : 1);
+  const zf = S.avZoom || 1; const r = Math.max(W / iw, H / ih) * zf; const sw = W / r, sh = H / r;
+  const sx0 = clamp(S.mouthX * iw - sw / 2, 0, Math.max(0, iw - sw)), sy0 = clamp(S.mouthY * ih0 - sh * 0.36, 0, Math.max(0, ih - sh));
+  const E = S.energy; const z = 1.03 + 0.012 * Math.sin(t * 1.3) + pulse * 0.025 * R; const rot = Math.sin(t * 1.9) * 0.012 * E;
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.translate(W / 2, H / 2 - 20); ctx.rotate(rot); ctx.scale(z, z);
+  ctx.drawImage(img, sx0, sy0, sw, sh, -W / 2, -H / 2, W, H);
+  const toC = (x, y) => [(x - sx0) * r - W / 2, (y - sy0) * r - H / 2];
+  const mx = S.mouthX * iw, my = S.mouthY * ih0, mw = S.mouthW * iw;
+  const o = mouthOpen(L, t);
+  if (o > 0.02){
+    const jawW = mw * 2.1, chinH = Math.min(mw * 1.9, ih0 - my - 1), dyMax = o * mw * 0.34;
+    const c = toC(mx, my); const halfM = mw * 0.44 * r, depth = dyMax * r * 1.2;
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(c[0] - halfM, c[1]); ctx.bezierCurveTo(c[0] - halfM * 0.6, c[1] + depth * 1.35, c[0] + halfM * 0.6, c[1] + depth * 1.35, c[0] + halfM, c[1]);
+    ctx.bezierCurveTo(c[0] + halfM * 0.5, c[1] - depth * 0.12, c[0] - halfM * 0.5, c[1] - depth * 0.12, c[0] - halfM, c[1]); ctx.closePath();
+    ctx.shadowColor = 'rgba(40,8,14,0.9)'; ctx.shadowBlur = 6; ctx.fillStyle = '#2b0a10'; ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
+    if (o > 0.35){ ctx.fillStyle = 'rgba(236,228,222,' + (0.35 + 0.4 * o) + ')'; ctx.fillRect(c[0] - halfM, c[1] - depth * 0.3, halfM * 2, depth * 0.48); }
+    ctx.fillStyle = 'rgba(170,60,72,0.6)'; ctx.beginPath(); ctx.ellipse(c[0], c[1] + depth * 1.05, halfM * 0.42, depth * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    const N = 28; const x0 = Math.max(0, mx - jawW / 2); const stw = Math.min(jawW, iw - x0) / N;
+    for (let k = 0; k < N; k++){
+      const sx = x0 + k * stw; const u = (k + 0.5) / N; const d = dyMax * Math.pow(Math.sin(Math.PI * u), 1.2);
+      const p0 = toC(sx, my);
+      if (chinH - d > 2) ctx.drawImage(img, sx, my, stw + 0.6, chinH, p0[0], p0[1] + d * r, stw * r + 0.8, (chinH - d) * r);
+    }
+  }
+  ctx.restore();
+  const g = ctx.createLinearGradient(0, 940, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.78)'); ctx.fillStyle = g; ctx.fillRect(0, 940, W, H - 940);
+}
+function renderAvatarUI(){
+  const has = !!(imgs.avatar && imgs.avatar.url);
+  $('avImg').src = has ? imgs.avatar.url : ''; $('avBox').classList.toggle('empty', !has);
+  $('avMouthCard').style.display = has ? '' : 'none';
+  const mk = $('avMark'); mk.style.left = (S.mouthX * 100) + '%'; mk.style.top = (S.mouthY * 100) + '%'; mk.style.width = (S.mouthW * 100) + '%';
+  $('tAv').checked = S.avatar; $('inAvDesc').value = S.avDesc; $('inMW').value = S.mouthW; $('inAZ').value = S.avZoom || 1; $('inMA').value = S.mouthAmt; $('maV').textContent = Math.round(S.mouthAmt * 100) + ' %';
+}
+
 /* ================= Frame ================= */
 let introCache = null, introVer = -1;
 function introItem(first){
@@ -974,8 +1076,8 @@ function draw(t){
   for (const a of L){ if (t < a.start || t > a.end) continue; const sc = getScene(a); if ((sc.anim === 'slam' || sc.anim === 'fly') && sc.keyIdx >= 0){ const q = (t - a.wt[sc.keyIdx] - 0.2) / 0.3; if (q > 0 && q < 1) amp = Math.max(amp, (1 - q) * 16 * S.energy); } }
   if (S.pack === 'street' && bg.prev && bg.q < 1) amp = Math.max(amp, (1 - bg.q) * 26);
   if (amp > 0){ const f = Math.floor(t * 60); ctx.translate(W / 2 + (rnd(f, 1) - 0.5) * 2 * amp, H / 2 + (rnd(f, 2) - 0.5) * 2 * amp); ctx.scale(1.04, 1.04); ctx.translate(-W / 2, -H / 2); }
-  drawBg(bg, t, R);
-  bgIsImage = bg.key.indexOf('pack:') !== 0;
+  if (avatarActive()){ drawAvatar(L, t, R); bgIsImage = true; }
+  else { drawBg(bg, t, R); bgIsImage = bg.key.indexOf('pack:') !== 0; }
   const darkText = (S.pack === 'editorial' || S.pack === 'cartoon') && !bgIsImage;
   const first = L.length ? L[0].start : Infinity;
   // intro
@@ -1031,6 +1133,7 @@ function snippetFor(k){
 }
 function autoPrompt(k){
   const g = GENRES[S.genre] || GENRES.pop;
+  if (k === 'avatar') return (S.avDesc || 'charismatic singer') + ', close-up portrait of a singer, head and shoulders, face filling most of the frame, looking straight into the camera, mouth closed, lips together, ' + pk().img + ', ' + g.img + ', vertical 9:16, no text, no letters, no watermark';
   return pk().img + ', ' + g.img + ', a scene visualizing the song lyrics "' + snippetFor(k).slice(0, 160) + '", vertical 9:16 composition, cinematic, no text, no letters, no typography, no watermark';
 }
 const fullPrompt = k => (P.prompts && P.prompts[k]) || autoPrompt(k);
@@ -1045,41 +1148,57 @@ function setImgBlob(k, blob){
 }
 const genState = {}; let genRunning = false, genCancel = false;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+let lastAnon = 0;
+function setGenStat(msg){ $('genStat').textContent = msg; $('avStat').textContent = msg; }
 async function genOne(k){
-  const url = (S.endpoint || DEF_EP).replace('{prompt}', encodeURIComponent(fullPrompt(k))).replace('{w}', '768').replace('{h}', '1344').replace('{seed}', String(seedFor(k)));
-  for (let attempt = 0; attempt < 4; attempt++){
+  const prompt = fullPrompt(k), seed = seedFor(k);
+  const anonUrl = (S.endpoint || DEF_EP).replace('{prompt}', encodeURIComponent(prompt)).replace('{w}', '768').replace('{h}', '1344').replace('{seed}', String(seed));
+  let useKey = !!(S.apiKey || '').trim();
+  for (let attempt = 0; attempt < 6; attempt++){
     if (genCancel) return false;
+    let url;
+    if (useKey) url = 'https://gen.pollinations.ai/image/' + encodeURIComponent(prompt) + '?model=flux&width=768&height=1344&seed=' + seed + '&nologo=true&key=' + encodeURIComponent(S.apiKey.trim());
+    else {
+      const wait = lastAnon + 16000 - Date.now();
+      if (wait > 0){ setGenStat('Gratis-Modus: warte ' + Math.ceil(wait / 1000) + ' s …'); await sleep(wait); if (genCancel) return false; }
+      lastAnon = Date.now(); url = anonUrl;
+    }
     try {
-      const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 120000);
-      const r = await fetch(url, { signal: ctrl.signal }); clearTimeout(to);
-      if (r.status === 429){ $('genStat').textContent = 'Limit erreicht – warte 15 s …'; await sleep(15000); continue; }
+      setGenStat('Erzeuge Bild … ' + (useKey ? '(mit Key)' : '(Gratis-Modus)'));
+      const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 90000);
+      const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store' }); clearTimeout(to);
+      if (useKey && (r.status === 401 || r.status === 402 || r.status === 403)){ useKey = false; toast('Key abgelehnt oder Guthaben leer – nutze Gratis-Modus'); continue; }
+      if (r.status === 429 || r.status === 502 || r.status === 503 || r.status === 504){
+        const ra = parseInt(r.headers.get('Retry-After') || '0', 10) || 0; const w = Math.max(ra * 1000, useKey ? 5000 : 20000);
+        setGenStat('Server ausgelastet – neuer Versuch in ' + Math.round(w / 1000) + ' s …'); await sleep(w); continue; }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const blob = await r.blob(); if (!/^image\//.test(blob.type) || blob.size < 2000) throw new Error('kein Bild');
-      if (await setImgBlob(k, blob)){ P.ai = P.ai || {}; P.ai[k] = true; save(); await dbSet('img:' + k, blob); return true; }
+      if (await setImgBlob(k, blob)){ P.ai = P.ai || {}; P.ai[k] = useKey ? 'key' : 'anon'; save(); await dbSet('img:' + k, blob); return true; }
       throw new Error('Bild defekt');
-    } catch (e) { console.warn('gen', k, e); if (attempt < 3) await sleep(3000 * (attempt + 1)); }
+    } catch (e) { console.warn('gen', k, e); if (attempt < 5){ setGenStat('Fehler – neuer Versuch …'); await sleep(useKey ? 3000 : 4000); } }
   }
   return false;
 }
 async function genImages(all, only){
   if (genRunning){ genCancel = true; return; }
   const keys = only ? [only] : imgKeys().filter(k => all || !imgs[k]);
-  if (!keys.length){ toast(imgKeys().length ? 'Alle Bilder sind schon da' : 'Erst Lyrics einfügen'); return; }
+  if (genRunning === false && !keys.length){ toast(imgKeys().length ? 'Alle Bilder sind schon da' : 'Erst Lyrics einfügen'); return; }
   genRunning = true; genCancel = false; updateGenBtns();
   let ok = 0, fail = 0;
   for (let n = 0; n < keys.length; n++){
     if (genCancel) break;
     const k = keys[n]; genState[k] = 'busy'; renderImgGrid();
-    $('genStat').textContent = 'Erzeuge ' + (n + 1) + ' / ' + keys.length + ' … (ca. 10–30 s pro Bild)';
+    setGenStat('Bild ' + (n + 1) + ' / ' + keys.length + ' …');
     const r = await genOne(k); genState[k] = r ? '' : 'err'; if (r) ok++; else fail++;
     renderImgGrid(); if (n < keys.length - 1) await sleep(1500);
   }
   genRunning = false; updateGenBtns();
-  $('genStat').textContent = genCancel ? 'Abgebrochen.' : (ok + ' Bild(er) fertig' + (fail ? ', ' + fail + ' fehlgeschlagen – nochmal versuchen oder eigenes Foto nutzen' : ''));
-  genCancel = false; bump();
+  setGenStat(genCancel ? 'Abgebrochen.' : (ok + ' Bild(er) fertig' + (fail ? ', ' + fail + ' fehlgeschlagen – „Fehlende erzeugen“ nochmal tippen oder eigenes Foto nutzen' : '')));
+  genCancel = false; bump(); renderAvatarUI(); if (only === 'avatar' && ok && !S.avatar){ S.avatar = true; save(); renderAvatarUI(); bump(); }
 }
-function updateGenBtns(){ $('btnGen').textContent = genRunning ? '■ Stoppen' : '✦ Fehlende erzeugen'; $('btnGenAll').disabled = genRunning; }
+function updateGenBtns(){ $('btnGen').textContent = genRunning ? '■ Stoppen' : '✦ Fehlende erzeugen'; $('btnGenAll').disabled = genRunning; $('btnAvGen').textContent = genRunning ? '■ Stoppen' : '✦ Avatar erzeugen'; }
 function renderImgGrid(){
+  $('keyStat').textContent = (S.apiKey || '').trim() ? 'aktiv' : 'Gratis-Modus';
   const ai = ['section', 'line', 'main'].indexOf(S.imgMode) >= 0;
   $('genCard').style.display = ai ? '' : 'none';
   const keys = imgKeys();
@@ -1128,7 +1247,7 @@ function setCoverBlob(blob){
 }
 
 /* ================= UI ================= */
-function updatePlayIcons(){ const ic = audio.paused ? '▶' : '❚❚'; $('pvPlay').textContent = ic; $('miniPlay').textContent = ic; }
+function updatePlayIcons(){ const ic = audio.paused ? '▶' : '❚❚'; $('pvPlay').textContent = ic; $('miniPlay').textContent = ic; $('pvoPlay').textContent = ic; }
 function refreshAudioInfo(){
   const has = !!audioURL;
   $('audioName').textContent = has ? '♪ ' + (P.audioName || 'Song') : 'Song auswählen (MP3 / WAV)';
@@ -1143,7 +1262,7 @@ function applyUI(){
   $('tEmo').checked = S.emojis; $('tDood').checked = S.doodles; $('tUpper').checked = S.upper; $('tTitle').checked = S.showTitle; $('tProg').checked = S.progress;
   $('inHandle').value = S.handle; $('inReact').value = S.react; $('reactV').textContent = S.react + ' %';
   $('inShift').value = S.shift; $('shiftV').textContent = (S.shift > 0 ? '+' : '') + S.shift.toFixed(2).replace('.', ',') + ' s';
-  $('inEp').value = S.endpoint;
+  $('inEp').value = S.endpoint; $('inKey').value = S.apiKey || '';
   setSeg('segPack', S.pack); setSeg('segEnergy', S.energy); setSeg('segImg', S.imgMode); setSeg('segRange', S.range); setSeg('segLen', S.clipLen); setSeg('segRate', syncRate); setSeg('segSub', curSub);
   const gs = $('selGenre'); gs.innerHTML = Object.keys(GENRES).map(k => '<option value="' + k + '"' + (k === S.genre ? ' selected' : '') + '>' + GENRES[k].n + '</option>').join('');
   $('lineCount').textContent = lines.length ? lines.length + ' Zeilen · ' + (P.secs || []).length + ' Abschnitte' : '';
@@ -1162,7 +1281,7 @@ function switchTab(name){
 }
 function renderSub(){
   document.querySelectorAll('.sub-p').forEach(s => s.classList.toggle('on', s.id === 'sub-' + curSub)); setSeg('segSub', curSub);
-  if (curSub === 'img') renderImgGrid(); if (curSub === 'lines') renderLineEd();
+  if (curSub === 'img') renderImgGrid(); if (curSub === 'lines') renderLineEd(); if (curSub === 'avatar') renderAvatarUI();
 }
 
 /* ================= Sync ================= */
@@ -1337,7 +1456,9 @@ function bindUI(){
   // design
   $('pvPlay').addEventListener('click', () => { if (!audioURL) return toast('Erst einen Song laden (Tab 01)'); ensureGraph(); audio.playbackRate = 1; if (audio.paused) audio.play().catch(() => {}); else audio.pause(); });
   $('scrub').addEventListener('input', e => { try { audio.currentTime = parseFloat(e.target.value); } catch (er) {} dirty = true; });
-  cv.addEventListener('click', () => { if (!exporting) $('pvWrap').classList.toggle('big'); });
+  cv.addEventListener('click', () => { if (exporting || $('pvOv').classList.contains('on')) return; $('pvoHold').appendChild(cv); $('pvOv').classList.add('on'); dirty = true; });
+  $('pvoClose').addEventListener('click', () => { $('pvOv').classList.remove('on'); $('pvWrap').appendChild(cv); dirty = true; });
+  $('pvoPlay').addEventListener('click', () => $('pvPlay').click());
   bindSeg('segSub', v => { curSub = v; renderSub(); });
   bindSeg('segPack', v => { S.pack = v; setSeg('segPack', v); renderPal(); bump(); save(); if (curSub === 'img') renderImgGrid(); });
   bindSeg('segEnergy', v => { S.energy = parseFloat(v); setSeg('segEnergy', S.energy); bump(); save(); });
@@ -1367,9 +1488,21 @@ function bindUI(){
     else if (b.dataset.act === 'ph'){ imgTarget = k; $('fImg').click(); }
   });
   $('fImg').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; if (!f || !imgTarget) return;
-    if (await setImgBlob(imgTarget, f)){ if (P.ai) delete P.ai[imgTarget]; save(); await dbSet('img:' + imgTarget, f); genState[imgTarget] = ''; renderImgGrid(); bump(); } else toast('Bild konnte nicht geladen werden');
+    if (await setImgBlob(imgTarget, f)){ if (P.ai) delete P.ai[imgTarget]; save(); await dbSet('img:' + imgTarget, f); genState[imgTarget] = ''; renderImgGrid(); renderAvatarUI(); bump(); } else toast('Bild konnte nicht geladen werden');
     e.target.value = ''; imgTarget = null; });
   $('inEp').addEventListener('change', e => { S.endpoint = e.target.value.trim() || DEF_EP; e.target.value = S.endpoint; save(); });
+  $('inKey').addEventListener('change', e => { S.apiKey = e.target.value.trim(); save(); renderImgGrid(); toast(S.apiKey ? 'Key gespeichert' : 'Gratis-Modus aktiv'); });
+  $('tAv').addEventListener('change', e => { if (e.target.checked && !(imgs.avatar && imgs.avatar.img)){ e.target.checked = false; return toast('Erst einen Avatar erzeugen oder Bild wählen'); } S.avatar = e.target.checked; bump(); save(); });
+  $('inAvDesc').addEventListener('input', e => { S.avDesc = e.target.value; save(); });
+  $('btnAvGen').addEventListener('click', () => { if (genRunning){ genCancel = true; return; } if (!S.avDesc.trim()) return toast('Beschreibe kurz deinen Charakter');
+    P.seeds.avatar = Math.floor(Math.random() * 1e6); delete P.prompts.avatar; save(); genImages(true, 'avatar'); });
+  $('btnAvPhoto').addEventListener('click', () => { imgTarget = 'avatar'; $('fImg').click(); });
+  $('avBox').addEventListener('click', e => { const im = $('avImg'); const rc = im.getBoundingClientRect(); if (!rc.width) return;
+    S.mouthX = clamp((e.clientX - rc.left) / rc.width); S.mouthY = clamp((e.clientY - rc.top) / rc.height); renderAvatarUI(); bump(); save(); avTestUntil = Date.now() + 1500; });
+  $('inMW').addEventListener('input', e => { S.mouthW = parseFloat(e.target.value); renderAvatarUI(); dirty = true; save(); avTestUntil = Date.now() + 1200; });
+  $('inAZ').addEventListener('input', e => { S.avZoom = parseFloat(e.target.value); dirty = true; save(); });
+  $('inMA').addEventListener('input', e => { S.mouthAmt = parseFloat(e.target.value); renderAvatarUI(); dirty = true; save(); avTestUntil = Date.now() + 1200; });
+  $('btnAvTest').addEventListener('click', () => { if (!avatarActive()){ S.avatar = !!(imgs.avatar && imgs.avatar.img); bump(); save(); renderAvatarUI(); } avTestUntil = Date.now() + 2500; window.scrollTo({ top: 0, behavior: 'smooth' }); });
   $('epReset').addEventListener('click', () => { S.endpoint = DEF_EP; $('inEp').value = DEF_EP; save(); toast('Standard wiederhergestellt'); });
   // line editor
   const le = $('lineEd');
@@ -1416,7 +1549,7 @@ async function init(){
   const cb = await dbGet('cover'); if (cb) await setCoverBlob(cb);
   const keys = await dbKeys();
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('img:') === 0){ const b = await dbGet(k); if (b) await setImgBlob(k.slice(4), b); } }
-  applyUI(); bump();
+  applyUI(); renderAvatarUI(); bump();
   requestAnimationFrame(loop);
   const fl = Object.keys(FONTS).map(k => document.fonts ? document.fonts.load(fnt(k, 100), 'AaÄß') : Promise.resolve());
   Promise.all(fl).catch(() => {}).then(() => { for (const k in capCache) delete capCache[k]; bump(); makeIcon(); });
