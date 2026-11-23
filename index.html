@@ -18,6 +18,13 @@
 html{background:var(--bg)}
 html,body{margin:0;color:var(--tx);font-family:var(--font);overscroll-behavior:none;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
 body{min-height:100vh;background:var(--bg)}
+body::after{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:rgba(6,6,10,.78);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);z-index:40;pointer-events:none}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.hk{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--glass2);border:0;border-radius:18px;padding:12px 14px;margin-top:8px;color:var(--tx);font:500 14px var(--font)}
+.hk b{font:700 15px var(--font);display:block}
+.hk small{color:var(--tx3);display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}
+.hk i{margin-left:auto;font-style:normal;font:700 13px var(--font);background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.file.sm{padding:11px 14px;font-size:14px}
 body::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;background:radial-gradient(40% 30% at 20% 15%,rgba(130,100,255,.35),transparent 70%),radial-gradient(35% 28% at 85% 30%,rgba(40,200,255,.22),transparent 70%),radial-gradient(45% 35% at 50% 95%,rgba(255,80,170,.18),transparent 70%);filter:blur(10px);animation:drift 24s ease-in-out infinite alternate}
 @keyframes drift{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-4%,3%,0) scale(1.08)}100%{transform:translate3d(3%,-2%,0) scale(1.02)}}
 button,label,.ln,.ic,.avbox,.chips button{cursor:pointer}
@@ -49,7 +56,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--tx2) 50%),li
 select option{color:#000}
 input[type=range]{width:100%;accent-color:var(--acc);height:30px}
 .seg{display:flex;gap:2px;background:var(--fill);border-radius:12px;padding:2px}
-.seg button{flex:1 1 0;min-width:0;padding:9px 4px;border-radius:10px;border:0;background:transparent;color:var(--tx);font:600 13px var(--font);touch-action:manipulation;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .2s}
+.seg button{flex:1 1 0;min-width:0;padding:9px 2px;border-radius:10px;border:0;background:transparent;color:var(--tx);font:600 13px var(--font);touch-action:manipulation;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .2s}
 .seg button.on{background:rgba(255,255,255,.22);box-shadow:0 3px 8px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.3)}
 .subseg{margin:12px 0 14px}
 .tg{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;font:400 17px var(--font);border-top:.5px solid var(--sep)}
@@ -161,12 +168,17 @@ details.card[open] summary{margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 2.4</div></header>
+<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 2.5</div></header>
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="navgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A8FF"/><stop offset="1" stop-color="#4FD8FF"/></linearGradient></defs></svg>
 
 <main>
 <!-- 01 PROJEKT -->
 <section class="tab on" id="tab-project">
+  <div class="card">
+    <div class="lbl"><span>Projekt</span><span id="projCount"></span></div>
+    <select id="selProj"></select>
+    <div class="row3"><button class="btn sm" id="projNew">+ Neu</button><button class="btn sm" id="projDup">Duplizieren</button><button class="btn sm danger" id="projDel">Löschen</button></div>
+  </div>
   <div class="card">
     <div class="lbl"><span>Song</span><span id="audioInfo"></span></div>
     <label class="file" id="audioLbl"><input type="file" id="fAudio" accept="audio/*,.mp3,.wav,.m4a"><span id="audioName">Song auswählen (MP3 / WAV)</span></label>
@@ -191,7 +203,7 @@ details.card[open] summary{margin-bottom:12px}
     <textarea id="inLyrics" placeholder="Lyrics aus Suno hier einfügen – inkl. [Verse], [Chorus] usw.&#10;&#10;Eine Zeile = eine Szene im Video."></textarea>
     <p class="hint">Tags wie [Chorus] werden nicht angezeigt, sondern als Abschnitte genutzt (z. B. ein KI-Bild pro Abschnitt). Ohne Tags trennen Leerzeilen die Abschnitte.</p>
   </div>
-  <button class="btn ghost danger" id="btnReset">Projekt zurücksetzen</button>
+  <button class="btn ghost danger" id="btnReset">Projekt leeren</button>
 </section>
 
 <!-- 02 SYNC -->
@@ -199,10 +211,11 @@ details.card[open] summary{margin-bottom:12px}
   <div class="card">
     <div class="lbl"><span>🤖 Automatisch timen</span><span id="asrStat"></span></div>
     <div class="seg" id="segLang"><button data-v="german">Deutsch</button><button data-v="english">Englisch</button><button data-v="auto">Auto</button></div>
-    <div class="seg" id="segModel" style="margin-top:8px"><button data-v="tiny">Schnell</button><button data-v="base">Genau</button></div>
+    <div class="seg" id="segModel" style="margin-top:8px"><button data-v="tiny">Schnell</button><button data-v="base">Genau</button><button data-v="small">Maximal</button></div>
     <button class="btn pri" id="btnAuto" style="margin-top:10px">🤖 Lyrics automatisch timen</button>
     <div class="bar" id="asrBarW" style="width:100%;margin-top:12px;display:none;background:rgba(18,59,18,.2)"><i id="asrBar" style="background:var(--ink)"></i></div>
-    <p class="hint" id="asrHint">Die KI hört den Song komplett auf deinem iPhone ab und setzt Zeilen- und Wort-Timing. Beim ersten Mal lädt sie einmalig ca. 41 MB (Schnell) bzw. 77 MB (Genau). Danach kurz prüfen und einzelne Zeilen mit −/+ korrigieren.</p>
+    <p class="hint" id="asrHint">Die KI hört den Song komplett auf deinem iPhone ab und setzt Zeilen- und Wort-Timing. Einmaliger Download: Schnell 41 MB · Genau 77 MB · Maximal 250 MB (am genauesten, aber 2–3× langsamer). Danach werden die Zeilen automatisch auf die Gesangseinsätze eingerastet.</p>
+    <button class="btn sm" id="btnSnap" style="margin-top:10px">🎯 Timing an Gesangseinsätze anpassen</button>
   </div>
   <div class="card">
     <div class="lbl"><span>Synchronisieren</span><span id="syncStat"></span></div>
@@ -279,7 +292,7 @@ details.card[open] summary{margin-bottom:12px}
 
   <div class="sub-p" id="sub-img">
     <div class="card"><div class="lbl">Hintergrund-Bild pro …</div>
-      <div class="seg" id="segImg"><button data-v="section">Abschnitt</button><button data-v="line">Zeile</button><button data-v="main">Motiv</button><button data-v="cover">Cover</button><button data-v="off">Keine</button></div>
+      <div class="seg" id="segImg"><button data-v="section">Teil</button><button data-v="line">Zeile</button><button data-v="main">Motiv</button><button data-v="cover">Cover</button><button data-v="off">Aus</button></div>
       <p class="hint" id="imgHint"></p>
     </div>
     <div class="card" id="genCard"><div class="lbl">KI-Bildstil nach Genre</div>
@@ -328,6 +341,13 @@ details.card[open] summary{margin-bottom:12px}
       <div class="lbl" style="margin-top:10px"><span>Mundbewegung</span><span id="maV"></span></div><input type="range" id="inMA" min="0.2" max="1.2" step="0.05">
       <button class="btn sm" id="btnAvTest" style="margin-top:10px">👄 Testen</button>
     </div>
+    <div class="card"><div class="lbl"><span>Lipsync-Video (optional)</span><span id="vidStat"></span></div>
+      <label class="tg"><span>Video statt Avatar-Bild</span><input type="checkbox" id="tVid"><i></i></label>
+      <div class="row2"><label class="file sm" id="vidLbl"><input type="file" id="fVid" accept="video/*"><span>Video wählen</span></label><button class="btn sm" id="vidDel">Entfernen</button></div>
+      <div class="lbl" style="margin-top:14px"><span>Video startet im Song bei</span><span id="vidStartV">0:00</span></div>
+      <div class="row2"><button class="btn sm" id="vidStartPv">= Vorschau-Position</button><button class="btn sm" id="vidStart0">= Songanfang</button></div>
+      <p class="hint">Erstelle z. B. mit Hedra ein Lipsync-Video zu deinem Song oder einem Ausschnitt und lade es hier. HOOK spielt es synchron ab und legt Lyrics und Effekte darüber.</p>
+    </div>
   </div>
 
   <div class="sub-p" id="sub-lines">
@@ -338,6 +358,15 @@ details.card[open] summary{margin-bottom:12px}
 
 <!-- 04 EXPORT -->
 <section class="tab" id="tab-export">
+  <div class="card"><div class="lbl"><span>Plattform</span><span id="platInfo"></span></div>
+    <div class="seg" id="segPlat"><button data-v="reels">Reels</button><button data-v="tiktok">TikTok</button><button data-v="shorts">Shorts</button><button data-v="youtube">YouTube</button></div>
+    <label class="tg" style="margin-top:8px"><span>Safe-Zones in der Vorschau</span><input type="checkbox" id="tSafe"><i></i></label>
+    <p class="hint" id="platHint"></p>
+  </div>
+  <div class="card"><div class="lbl"><span>🔥 Hook-Finder</span><span id="hookStat"></span></div>
+    <button class="btn sm pri" id="btnHook">Beste Clips finden</button>
+    <div id="hookList"></div>
+  </div>
   <div class="card">
     <div class="lbl">Bereich</div>
     <div class="seg" id="segRange"><button data-v="full">Ganzer Song</button><button data-v="clip">Ausschnitt</button></div>
@@ -479,7 +508,8 @@ const EMO = [
 const DEF = { pack:'paper', palShift:0, energy:1, emojis:true, doodles:true, upper:true, showTitle:true, progress:false, handle:'', react:60,
   shift:-0.15, range:'full', clipStart:0, clipLen:30, seed:0, genre:'pop', imgMode:'section', endpoint:DEF_EP,
   apiKey:'', avatar:false, avDesc:'', mouthX:0.5, mouthY:0.38, mouthW:0.1, mouthAmt:0.8, avZoom:1.3, mouthAng:0, chinH:0, paperSet:0,
-  fxPart:true, fxFloat:true, fxViz:true, fxDepth:true, mimic:true, eyes:null, asrLang:'german', asrModel:'base' };
+  fxPart:true, fxFloat:true, fxViz:true, fxDepth:true, mimic:true, eyes:null, asrLang:'german', asrModel:'base',
+  useVid:false, vidStart:0, platform:'reels', safe:true };
 let S = Object.assign({}, DEF);
 let P = { title:'', artist:'', lyricsRaw:'', audioName:'', secs:[], prompts:{}, seeds:{}, ai:{} };
 let lines = [];
@@ -514,13 +544,34 @@ function pal(k){ const p = S.pack === 'paper' ? [ps().light, ps().dark, '#F4ECD6
 let dbp = null;
 function db(){ if (dbp) return dbp; dbp = new Promise((res, rej) => { try { const r = indexedDB.open('hook-studio', 1);
   r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); return dbp; }
-async function dbSet(k, v){ try { const d = await db(); await new Promise((res, rej) => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); } catch (e) { console.warn('save', e); } }
-async function dbGet(k){ try { const d = await db(); return await new Promise((res, rej) => { const r = d.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch (e) { return undefined; } }
-async function dbDel(k){ try { const d = await db(); await new Promise(res => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
-async function dbKeys(){ try { const d = await db(); return await new Promise((res, rej) => { const r = d.transaction('kv').objectStore('kv').getAllKeys(); r.onsuccess = () => res(r.result || []); r.onerror = () => rej(r.error); }); } catch (e) { return []; } }
-async function dbClear(){ try { const d = await db(); await new Promise(res => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').clear(); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
+async function rawSet(k, v){ try { const d = await db(); await new Promise((res, rej) => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); } catch (e) { console.warn('save', e); } }
+async function rawGet(k){ try { const d = await db(); return await new Promise((res, rej) => { const r = d.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch (e) { return undefined; } }
+async function rawDel(k){ try { const d = await db(); await new Promise(res => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
+async function rawKeys(){ try { const d = await db(); return await new Promise((res, rej) => { const r = d.transaction('kv').objectStore('kv').getAllKeys(); r.onsuccess = () => res(r.result || []); r.onerror = () => rej(r.error); }); } catch (e) { return []; } }
+async function rawClearAll(){ try { const d = await db(); await new Promise(res => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').clear(); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
+let PID = 'p1', PROJS = [];
+const pre = () => 'p:' + PID + ':';
+const dbSet = (k, v) => rawSet(pre() + k, v), dbGet = k => rawGet(pre() + k), dbDel = k => rawDel(pre() + k);
+async function dbKeys(){ const ks = await rawKeys(); const px = pre(); return ks.filter(k => typeof k === 'string' && k.indexOf(px) === 0).map(k => k.slice(px.length)); }
+async function dbClear(){ const ks = await dbKeys(); for (const k of ks) await dbDel(k); }
+async function initProjects(){
+  PROJS = (await rawGet('projects')) || [];
+  if (!PROJS.length){
+    const all = await rawKeys(); const legacy = all.filter(k => typeof k === 'string' && k.indexOf('p:') !== 0 && k !== 'projects' && k !== 'curProject');
+    PID = 'p1'; let name = 'Mein Song';
+    for (const k of legacy){ const v = await rawGet(k); if (k === 'state' && v && v.P && v.P.title) name = v.P.title; await rawSet('p:p1:' + k, v); await rawDel(k); }
+    PROJS = [{ id: 'p1', name: name, upd: Date.now() }]; await rawSet('projects', PROJS); await rawSet('curProject', 'p1');
+  } else { PID = (await rawGet('curProject')) || PROJS[0].id; if (!PROJS.some(q => q.id === PID)) PID = PROJS[0].id; }
+}
+function renderProjects(){
+  $('selProj').innerHTML = PROJS.slice().sort((a, b) => b.upd - a.upd).map(q => '<option value="' + q.id + '"' + (q.id === PID ? ' selected' : '') + '>' + esc(q.name || 'Ohne Titel') + '</option>').join('');
+  $('projCount').textContent = PROJS.length + (PROJS.length === 1 ? ' Projekt' : ' Projekte');
+}
+async function flushSave(){ clearTimeout(saveT); await dbSet('state', { S: S, P: P, lines: lines }); }
+async function switchProject(id){ await flushSave(); await rawSet('curProject', id); location.reload(); }
 let saveT;
-function save(){ clearTimeout(saveT); saveT = setTimeout(() => dbSet('state', { S: S, P: P, lines: lines }), 400); }
+function save(){ clearTimeout(saveT); saveT = setTimeout(() => { dbSet('state', { S: S, P: P, lines: lines });
+  const q = PROJS.find(x => x.id === PID); if (q){ q.name = P.title || q.name || 'Ohne Titel'; q.upd = Date.now(); rawSet('projects', PROJS); } }, 400); }
 
 /* ================= Audio ================= */
 const audio = document.createElement('audio');
@@ -749,9 +800,9 @@ function buildScene(a){
   if (cy + L.box.y1 > 1530) cy = 1530 - L.box.y1;
   if (bh > 1150) cy = 950;
   let kS = 1;
-  if (avatarActive()){ kS = Math.min(1, 560 / Math.max(1, bh), 1); cy = 1340 + (R(3) - 0.5) * 100;
+  if (lowLayout()){ kS = Math.min(1, 560 / Math.max(1, bh), 1); cy = 1340 + (R(3) - 0.5) * 100;
     cy = Math.max(cy, 1060 - L.box.y0 * kS); cy = Math.min(cy, 1650 - L.box.y1 * kS); }
-  else if (S.pack === 'paper' && !anyImageBg()){ kS = Math.min(1.3, 780 / Math.max(1, bh), 860 / Math.max(1, L.box.x1 - L.box.x0)); cy = 990 + (R(3) - 0.5) * 70;
+  else if (S.pack === 'paper' && !anyImageBg() && !lowLayout()){ kS = Math.min(1.3, 780 / Math.max(1, bh), 860 / Math.max(1, L.box.x1 - L.box.x0)); cy = 990 + (R(3) - 0.5) * 70;
     cy = Math.max(cy, 600 - L.box.y0 * kS); cy = Math.min(cy, 1390 - L.box.y1 * kS); }
   const rot = lay === 'diagonal' ? (R(4) < 0.5 ? -1 : 1) * 0.11 : lay === 'bubble' ? 0 : (R(4) - 0.5) * 2 * p.tilt;
   const np = p.palette.length;
@@ -764,7 +815,7 @@ function buildScene(a){
   if (S.doodles && n && a.i >= -1){
     sc.keyDeco = p.keyDeco[Math.floor(R(7) * p.keyDeco.length)];
     if (lay === 'split' && keyIdx < n - 1 && (sc.keyDeco === 'underline' || sc.keyDeco === 'circle')) sc.keyDeco = null;
-    const gx0 = sc.cx + L.box.x0 * kS - 70, gx1 = sc.cx + L.box.x1 * kS + 70, gy0 = cy + L.box.y0 * kS - 70, gy1 = cy + L.box.y1 * kS + 70; const av = avatarActive();
+    const gx0 = sc.cx + L.box.x0 * kS - 70, gx1 = sc.cx + L.box.x1 * kS + 70, gy0 = cy + L.box.y0 * kS - 70, gy1 = cy + L.box.y1 * kS + 70; const av = lowLayout();
     const cnt = p.doodles.length ? 2 + Math.floor(R(8) * 3) : 0;
     for (let k = 0; k < cnt; k++){
       for (let tr = 0; tr < 24; tr++){
@@ -781,7 +832,7 @@ function buildScene(a){
     let ex, ey;
     if (sc.bubble){ ex = sc.cx + (sc.bubble.side < 0 ? sc.bubble.x1 + 30 : sc.bubble.x0 - 30) * kS; ey = cy + sc.bubble.y0 * kS - 20; }
     else { ex = sc.cx + (R(41) < 0.5 ? L.box.x0 + 40 : L.box.x1 - 40) * kS; ey = cy + L.box.y0 * kS - 90; }
-    sc.emoji = { ch: emo, x: clamp(ex, 110, 970), y: clamp(ey, avatarActive() ? 980 : 300, 1620), size: 150 };
+    sc.emoji = { ch: emo, x: clamp(ex, 110, 970), y: clamp(ey, lowLayout() ? 980 : 300, 1620), size: 150 };
   }
   sc.cls = a.i < 0 ? 1 : secClassOf(a.sec);
   const EN = [['mask','slideL','slideR','flipX','rise'], ['mask','slideL','slideR','flipX','flipY','drop','rise'], ['zoomBlur','spin','flipY','drop','slideL','slideR']][sc.cls];
@@ -1107,6 +1158,7 @@ function drawBg(bg, t, R){
 /* ================= Avatar ================= */
 const isAnon = k => !!(P.ai && (P.ai[k] === 'anon' || P.ai[k] === true));
 function avatarActive(){ return !!(S.avatar && imgs.avatar && imgs.avatar.img); }
+function lowLayout(){ return avatarActive() || !!(S.useVid && vidReady); }
 let avTestUntil = 0;
 function sylCount(w){ const m = String(w).toLowerCase().match(/[aeiouyäöü]+/g); return m ? m.length : 1; }
 const VIS = { A:[1,1,0], O:[0.75,0.66,1], U:[0.5,0.52,1], E:[0.52,1.12,0], I:[0.36,1.2,0], M:[0,0.92,0], F:[0.14,1,0], C:[0.3,0.96,0], X:[0.04,0.95,0] };
@@ -1171,6 +1223,12 @@ function drawAvatar(L, t, R){
   const nod = mim * pulse * R * (isCh ? 16 : 8);
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   ctx.save(); ctx.translate(W / 2 + mim * Math.sin(t * 0.7) * 10 * E, H / 2 - 20 + nod); ctx.rotate(rot); ctx.scale(z, z);
+  const meshImg = renderMesh(L, t);
+  if (meshImg){
+    ctx.drawImage(meshImg, sx0, sy0, sw, sh, -W / 2, -H / 2, W, H); ctx.restore();
+    const g0 = ctx.createLinearGradient(0, 940, 0, H); g0.addColorStop(0, 'rgba(0,0,0,0)'); g0.addColorStop(1, 'rgba(0,0,0,0.78)'); ctx.fillStyle = g0; ctx.fillRect(0, 940, W, H - 940);
+    return;
+  }
   ctx.drawImage(img, sx0, sy0, sw, sh, -W / 2, -H / 2, W, H);
   const toC = (x, y) => [(x - sx0) * r - W / 2, (y - sy0) * r - H / 2];
   const mx = S.mouthX * iw, my = S.mouthY * ih0, mw = S.mouthW * iw;
@@ -1238,6 +1296,7 @@ async function detectMouth(){
     if (!lm){ setAvStat('kein Gesicht gefunden – Markierung ziehen'); return false; }
     const iw = im.naturalWidth, ih = im.naturalHeight; const g = i => lm[i];
     const L = g(61), Rr = g(291), U = g(13), D = g(14), chin = g(152), top = g(10);
+    P.lm = lm.map(q => [Math.round(q.x * 1e4) / 1e4, Math.round(q.y * 1e4) / 1e4, Math.round(q.z * 1e4) / 1e4]); meshCache = null;
     S.mouthX = (U.x + D.x) / 2; S.mouthY = (U.y + D.y) / 2;
     S.mouthW = Math.hypot((Rr.x - L.x) * iw, (Rr.y - L.y) * ih) / iw;
     S.mouthAng = Math.atan2((Rr.y - L.y) * ih, (Rr.x - L.x) * iw);
@@ -1374,13 +1433,14 @@ function renderPaperSeg(){
 }
 let thumbT = null;
 function scheduleThumbs(){ clearTimeout(thumbT); thumbT = setTimeout(renderPackThumbs, 250); }
+let thumbRendering = false;
 function renderPackThumbs(){
-  if (exporting || curTab !== 'design') return;
+  if (exporting || curTab !== 'design') return; thumbRendering = true;
   const keep = S.pack; const L = getTimeline(); let t = 0.8;
   if (L.length){ const a = L.find(x => /chorus|refrain|hook/i.test(secName(x.sec))) || L[0]; t = a.start + Math.min(1.6, (a.end - a.start) * 0.7); }
   document.querySelectorAll('#segPack button').forEach(b => { const c = b.querySelector('canvas'); if (!c) return; S.pack = b.dataset.v; bump();
     try { draw(t); c.getContext('2d').drawImage(cv, 0, 0, c.width, c.height); } catch (e) { console.warn(e); } });
-  S.pack = keep; bump(); dirty = true;
+  S.pack = keep; bump(); dirty = true; thumbRendering = false;
 }
 
 function renderAvatarUI(){
@@ -1491,6 +1551,37 @@ function alignLyrics(chunks){
   });
   return { lines: good, words: words };
 }
+let pcmCache = null;
+async function getPCM(){ if (pcmCache && pcmCache.url === audioURL) return pcmCache.pcm; const buf = await (await fetch(audioURL)).arrayBuffer(); const pcm = await toPCM16k(buf); pcmCache = { url: audioURL, pcm: pcm }; return pcm; }
+function vocalOnsets(pcm){
+  const hop = 160, win = 400; const n = Math.max(0, Math.floor((pcm.length - win) / hop)); const e = new Float32Array(n);
+  for (let i = 0; i < n; i++){ let q = 0; const o = i * hop; for (let k = 0; k < win; k += 2) q += pcm[o + k] * pcm[o + k]; e[i] = Math.log(1e-7 + q / (win / 2)); }
+  const sm = new Float32Array(n); for (let i = 0; i < n; i++){ let a = 0, c = 0; for (let k = -2; k <= 2; k++){ const j = i + k; if (j >= 0 && j < n){ a += e[j]; c++; } } sm[i] = a / c; }
+  const f = new Float32Array(n); let mean = 0;
+  for (let i = 3; i < n - 15; i++){ const fl = Math.max(0, sm[i] - sm[i - 3]); let after = 0; for (let k = 2; k < 15; k++) after += sm[i + k]; after /= 13; const sus = Math.max(0, after - sm[i - 3]); f[i] = fl * (1 + sus); mean += f[i]; }
+  mean /= Math.max(1, n); let sd = 0; for (let i = 0; i < n; i++) sd += (f[i] - mean) * (f[i] - mean); sd = Math.sqrt(sd / Math.max(1, n));
+  const peaks = []; const th = mean + 0.6 * sd;
+  for (let i = 3; i < n - 3; i++){ if (f[i] > th && f[i] >= f[i - 1] && f[i] >= f[i + 1] && f[i] >= f[i - 2] && f[i] >= f[i + 2]) peaks.push({ t: Math.max(0, i * 0.01 - 0.03), s: (f[i] - mean) / (sd || 1) }); }
+  return peaks;
+}
+function bestPeak(peaks, t, lo, hi){ let best = null, bs = 0; for (const pk of peaks){ if (pk.t < t - lo) continue; if (pk.t > t + hi) break; const sc = pk.s / (1 + Math.abs(pk.t - t) * 4); if (sc > bs){ bs = sc; best = pk; } } return best; }
+function snapLines(peaks){
+  let moved = 0; let prev = -1;
+  lines.forEach(l => {
+    if (l.t == null) return;
+    const pk0 = bestPeak(peaks, l.t, 0.45, 0.55);
+    if (pk0){ const d = pk0.t - l.t; if (Math.abs(d) > 0.02){ l.t = Math.round(pk0.t * 100) / 100; if (l.wt && l.wt.length){ l.wt[0] = l.t; if (l.we) l.we[0] = Math.max(l.we[0], l.t + 0.08); } moved++; } }
+    if (l.wt && l.wt.length > 1){ for (let j = 1; j < l.wt.length; j++){ const pk = bestPeak(peaks, l.wt[j], 0.12, 0.12); if (pk && pk.t > l.wt[j - 1] + 0.05) l.wt[j] = Math.round(pk.t * 100) / 100; if (l.wt[j] <= l.wt[j - 1]) l.wt[j] = l.wt[j - 1] + 0.05; } }
+    if (l.t <= prev + 0.15) l.t = prev + 0.15; prev = l.t;
+  });
+  return moved;
+}
+async function snapNow(){
+  if (!audioURL) return toast('Erst einen Song laden'); if (!lines.some(l => l.t != null)) return toast('Erst timen oder synchronisieren');
+  $('asrStat').textContent = 'suche Gesangseinsätze …';
+  try { const pcm = await getPCM(); const n = snapLines(vocalOnsets(pcm)); bump(); save(); renderSyncList(); $('asrStat').textContent = n + ' Zeilen nachjustiert'; toast(n + ' Zeilen eingerastet'); }
+  catch (e) { console.warn(e); toast('Analyse fehlgeschlagen'); }
+}
 let asrBusy = false;
 async function autoSync(){
   if (asrBusy) return;
@@ -1502,15 +1593,15 @@ async function autoSync(){
   const t0 = Date.now(); let tick = null;
   try {
     st('bereite Audio vor …');
-    const buf = await (await fetch(audioURL)).arrayBuffer();
-    const pcm = await toPCM16k(buf);
-    const model = S.asrModel === 'tiny' ? 'onnx-community/whisper-tiny_timestamped' : 'onnx-community/whisper-base_timestamped';
+    const pcmFull = await getPCM(); const pcm = pcmFull.slice();
+    const model = S.asrModel === 'tiny' ? 'onnx-community/whisper-tiny_timestamped' : S.asrModel === 'small' ? 'onnx-community/whisper-small_timestamped' : 'onnx-community/whisper-base_timestamped';
     const tr = loadTracker(st, $('asrBar'));
     const res = await ai({ cmd: 'asr', audio: pcm, model: model, lang: S.asrLang === 'auto' ? '' : S.asrLang }, d => {
       tr(d); if (d.type === 'status'){ $('asrBar').style.width = '100%'; const s0 = Date.now(); clearInterval(tick); tick = setInterval(() => st('analysiere … ' + Math.round((Date.now() - s0) / 1000) + ' s'), 1000); } });
     clearInterval(tick);
     const r = alignLyrics(res.chunks || []);
     if (!r.words){ st('nichts erkannt'); toast('Kein Gesang erkannt – Sprache prüfen oder manuell tippen'); return; }
+    st('rastet auf Gesangseinsätze ein …'); try { snapLines(vocalOnsets(pcmFull)); } catch (e) { console.warn(e); }
     S.shift = 0; $('inShift').value = 0; $('shiftV').textContent = '0,00 s';
     bump(); save(); renderSyncList(); refreshExport();
     st(r.lines + ' / ' + lines.length + ' Zeilen erkannt');
@@ -1623,6 +1714,188 @@ function drawViz(R){
   ctx.restore();
 }
 
+/* ================= Mesh avatar (WebGL) ================= */
+const FACE_OVAL = [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109];
+const LIP_IN = [78,191,80,81,82,13,312,311,310,415,308,324,318,402,317,14,87,178,88,95];
+const UPPER_SIDE = new Set([191,80,81,82,13,312,311,310,415,185,40,39,37,0,267,269,270,409,184,74,73,72,11,302,303,304,408,183,42,41,38,12,268,271,272,407]);
+const LOWER_SIDE = new Set([95,88,178,87,14,317,402,318,324,96,89,179,86,15,316,403,319,325,77,90,180,85,16,315,404,320,307,146,91,181,84,17,314,405,321,375]);
+const LOWER_LIP = new Set([95,88,178,87,14,317,402,318,324,146,91,181,84,17,314,405,321,375,77,90,180,85,16,315,404,320,307,96,89,179,86,15,316,403,319,325]);
+const EYES = [{ up:[246,161,160,159,158,157,173], lo:[33,7,163,144,145,153,154,155,133], cr:[247,30,29,27,28,56,190], top:159, bot:145 }, { up:[466,388,387,386,385,384,398], lo:[263,249,390,373,374,380,381,382,362], cr:[467,260,259,257,258,286,414], top:386, bot:374 }];
+const BROWS = [70,63,105,66,107,55,65,52,53,46,300,293,334,296,336,285,295,282,283,276];
+let Delaunay = null, meshCache = null, meshBuilding = false, glc = null, gl = null, glP = null, compC = null;
+function pip(x, y, poly){ let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++){ const a = poly[i], b = poly[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
+function meshKey(){ return (imgs.avatar && imgs.avatar.url) + '|' + (P.lm ? P.lm.length + ':' + P.lm[0][0] + ':' + P.lm[13][1] : ''); }
+async function buildMesh(){
+  if (meshBuilding || !P.lm || !imgs.avatar || !imgs.avatar.img) return; meshBuilding = true;
+  try {
+    if (!Delaunay) Delaunay = (await import('https://cdn.jsdelivr.net/npm/delaunator@5/+esm')).default;
+    const img = imgs.avatar.img, iw = img.naturalWidth, ih = img.naturalHeight; const pts = [];
+    P.lm.forEach(q => pts.push(q[0] * iw, q[1] * ih)); const nLm = P.lm.length;
+    let cx = 0, cy = 0; FACE_OVAL.forEach(i => { cx += pts[2 * i]; cy += pts[2 * i + 1]; }); cx /= FACE_OVAL.length; cy /= FACE_OVAL.length;
+    const poly = FACE_OVAL.map(i => [cx + (pts[2 * i] - cx) * 1.2, cy + (pts[2 * i + 1] - cy) * 1.2]);
+    const gx = 12, gy = 20; for (let j = 0; j <= gy; j++) for (let i = 0; i <= gx; i++){ const x = i / gx * iw, y = j / gy * ih; if (!pip(x, y, poly)) pts.push(x, y); }
+    const d = new Delaunay(Float64Array.from(pts)); const tri = d.triangles;
+    const ring = new Set(LIP_IN); const keep = [], hole = [];
+    for (let k = 0; k < tri.length; k += 3){ const a = tri[k], b = tri[k + 1], c = tri[k + 2]; const v = [a, b, c];
+      const allRing = v.every(x => ring.has(x)); const cross = v.some(x => UPPER_SIDE.has(x)) && v.some(x => LOWER_SIDE.has(x));
+      if (allRing || cross) hole.push(a, b, c); else keep.push(a, b, c); }
+    const m = { key: meshKey(), src: Float32Array.from(pts), dst: new Float32Array(pts.length), tri: Uint16Array.from(keep), hole: hole, n: pts.length / 2, nLm: nLm, iw: iw, ih: ih };
+    if (!glSetup(m, img)) { meshCache = { key: m.key, fail: true }; return; }
+    meshCache = m; dirty = true;
+  } catch (e) { console.warn('mesh', e); meshCache = { key: meshKey(), fail: true }; }
+  finally { meshBuilding = false; }
+}
+function glSetup(m, img){
+  try {
+    if (!glc){ glc = document.createElement('canvas'); gl = glc.getContext('webgl', { premultipliedAlpha: false, alpha: true, preserveDrawingBuffer: true, antialias: true }); if (!gl) return false;
+      const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+      const pr = gl.createProgram();
+      gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p;attribute vec2 uv;uniform vec2 res;varying vec2 v;void main(){v=uv;vec2 c=p/res*2.0-1.0;gl_Position=vec4(c.x,-c.y,0.0,1.0);}'));
+      gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, 'precision mediump float;varying vec2 v;uniform sampler2D t;void main(){gl_FragColor=texture2D(t,v);}'));
+      gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return false;
+      glP = { pr: pr, p: gl.getAttribLocation(pr, 'p'), uv: gl.getAttribLocation(pr, 'uv'), res: gl.getUniformLocation(pr, 'res'), pb: gl.createBuffer(), ub: gl.createBuffer(), ib: gl.createBuffer(), tex: gl.createTexture() };
+      compC = document.createElement('canvas');
+    }
+    glc.width = m.iw; glc.height = m.ih; compC.width = m.iw; compC.height = m.ih;
+    gl.useProgram(glP.pr);
+    gl.bindTexture(gl.TEXTURE_2D, glP.tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    const uv = new Float32Array(m.src.length); for (let i = 0; i < m.n; i++){ uv[2 * i] = m.src[2 * i] / m.iw; uv[2 * i + 1] = m.src[2 * i + 1] / m.ih; }
+    gl.bindBuffer(gl.ARRAY_BUFFER, glP.ub); gl.bufferData(gl.ARRAY_BUFFER, uv, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, glP.pb); gl.bufferData(gl.ARRAY_BUFFER, m.src, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glP.ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.tri, gl.STATIC_DRAW);
+    return true;
+  } catch (e) { console.warn('gl', e); return false; }
+}
+function deformMesh(m, t, L){
+  const src = m.src, dst = m.dst; dst.set(src); const lm = P.lm; const g = i => [src[2 * i], src[2 * i + 1]];
+  const mU = g(13), mD = g(14), mC = [(mU[0] + mD[0]) / 2, (mU[1] + mD[1]) / 2]; const cL = g(61), cR = g(291);
+  const mw = Math.hypot(cR[0] - cL[0], cR[1] - cL[1]); const faceW = Math.hypot(g(454)[0] - g(234)[0], g(454)[1] - g(234)[1]); const faceH = Math.hypot(g(152)[0] - g(10)[0], g(152)[1] - g(10)[1]);
+  const shp = mouthShape(L, t); const o = shp[0], wf = shp[1], rd = shp[2];
+  const D = o * mw * 0.42; const smile = wf > 1.05 ? (wf - 1) * 1.2 : 0;
+  const mim = S.mimic ? 1 : 0, E = S.energy, Rr = S.react / 100;
+  const test = Date.now() < avTestUntil;
+  const bl = mim ? (test ? Math.max(0, Math.sin(Date.now() / 200)) : blinkAmt(t)) : 0;
+  const yaw = mim * (Math.sin(t * 0.45) * 0.09 + Math.sin(t * 1.3) * 0.025) * E;
+  const pitch = mim * (Math.sin(t * 0.37 + 1) * 0.05 + pulse * 0.05 * Rr);
+  const brow = mim * clamp(pulse * 1.2 * Rr + (o > 0.85 ? 0.3 : 0));
+  for (let i = 0; i < m.nLm; i++){
+    const x = src[2 * i], y = src[2 * i + 1], z = lm[i][2]; let dx = 0, dy = 0;
+    const wx = clamp(1 - Math.abs(x - mC[0]) / (faceW * 0.62));
+    const wl = Math.pow(clamp(1 - Math.abs(x - mC[0]) / (mw * 0.62)), 0.75);
+    const band = clamp(1 - Math.abs(y - mC[1]) / (mw * 0.45));
+    const wj = wl * band + Math.pow(wx, 1.3) * (1 - band);
+    if (LOWER_LIP.has(i)) dy += D * wl;
+    else if (y > mC[1]){ const wv = clamp((y - mC[1]) / (mw * 0.25)); dy += D * wj * wv; }
+    else { const dm = Math.hypot(x - mC[0], (y - mC[1]) * 1.4); dy -= D * 0.12 * clamp(1 - dm / (mw * 0.9)); }
+    const dm2 = Math.hypot(x - mC[0], y - mC[1]); const wm = clamp(1 - dm2 / (mw * 1.1));
+    if (wm > 0){ dx += (x - mC[0]) * ((wf - 1) * 0.55 - rd * 0.3) * wm; dy -= smile * mw * 0.07 * wm * Math.min(1, Math.abs(x - mC[0]) / (mw * 0.5)); }
+    dx += yaw * (-z) * faceW * 1.6; dy += pitch * (-z) * faceW * 1.6;
+    dst[2 * i] += dx; dst[2 * i + 1] += dy;
+  }
+  if (bl > 0.01) EYES.forEach(e => {
+    const shift = {};
+    e.up.forEach(i => { let best = e.lo[0], bd = 1e9; e.lo.forEach(j => { const d = Math.abs(src[2 * j] - src[2 * i]); if (d < bd){ bd = d; best = j; } });
+      const dyv = Math.max(0, src[2 * best + 1] - src[2 * i + 1] - 1) * bl * 0.86; dst[2 * i + 1] += dyv; shift[i] = dyv; });
+    const avg = Object.values(shift).reduce((a, b) => a + b, 0) / Math.max(1, e.up.length);
+    e.cr.forEach(i => { if (i < m.nLm) dst[2 * i + 1] += avg * 0.35; });
+  });
+  if (brow > 0.01) BROWS.forEach(i => { dst[2 * i + 1] -= brow * faceH * 0.025; });
+  return { o: o, rd: rd };
+}
+function renderMesh(L, t){
+  if (!P.lm || !imgs.avatar) return null;
+  if (!meshCache || meshCache.key !== meshKey()){ if (!meshBuilding) buildMesh(); return null; }
+  if (meshCache.fail) return null;
+  const m = meshCache; const st = deformMesh(m, t, L);
+  gl.viewport(0, 0, m.iw, m.ih); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.useProgram(glP.pr);
+  gl.uniform2f(glP.res, m.iw, m.ih); gl.bindTexture(gl.TEXTURE_2D, glP.tex);
+  gl.bindBuffer(gl.ARRAY_BUFFER, glP.pb); gl.bufferSubData(gl.ARRAY_BUFFER, 0, m.dst); gl.enableVertexAttribArray(glP.p); gl.vertexAttribPointer(glP.p, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, glP.ub); gl.enableVertexAttribArray(glP.uv); gl.vertexAttribPointer(glP.uv, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glP.ib); gl.drawElements(gl.TRIANGLES, m.tri.length, gl.UNSIGNED_SHORT, 0);
+  const c = compC.getContext('2d'); c.clearRect(0, 0, m.iw, m.ih); c.drawImage(imgs.avatar.img, 0, 0);
+  if (st.o > 0.02){
+    const d = m.dst; c.save(); c.beginPath();
+    for (let k = 0; k < m.hole.length; k += 3){ const a = m.hole[k], b = m.hole[k + 1], e = m.hole[k + 2]; c.moveTo(d[2 * a], d[2 * a + 1]); c.lineTo(d[2 * b], d[2 * b + 1]); c.lineTo(d[2 * e], d[2 * e + 1]); c.closePath(); }
+    c.fillStyle = '#2a0a10'; c.lineWidth = 1.2; c.strokeStyle = '#2a0a10'; c.fill('nonzero'); c.stroke(); c.clip('nonzero');
+    const uy = d[2 * 13 + 1], ly = d[2 * 14 + 1], gap = Math.max(1, ly - uy), mx = (d[2 * 78] + d[2 * 308]) / 2, hw = Math.abs(d[2 * 308] - d[2 * 78]) / 2;
+    if (st.rd < 0.5 && st.o > 0.4){ const tg = c.createLinearGradient(0, uy - 2, 0, uy + gap * 0.35); tg.addColorStop(0, 'rgba(240,232,226,0.75)'); tg.addColorStop(1, 'rgba(200,185,180,0)'); c.fillStyle = tg; c.fillRect(mx - hw, uy - 4, hw * 2, gap * 0.3 + 4); }
+    c.fillStyle = 'rgba(160,55,70,0.75)'; c.beginPath(); c.ellipse(mx, ly - gap * 0.05, hw * 0.5, gap * 0.32, 0, 0, Math.PI * 2); c.fill();
+    const sg = c.createLinearGradient(0, uy, 0, ly); sg.addColorStop(0, 'rgba(0,0,0,0.5)'); sg.addColorStop(0.4, 'rgba(0,0,0,0)'); c.fillStyle = sg; c.fillRect(mx - hw, uy, hw * 2, gap);
+    c.restore();
+  }
+  c.drawImage(glc, 0, 0);
+  return compC;
+}
+
+/* ================= Lipsync video ================= */
+const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.setAttribute('playsinline', ''); vid.preload = 'auto';
+vid.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0.01;pointer-events:none'; document.body.appendChild(vid);
+let vidURL = null, vidReady = false;
+vid.addEventListener('loadeddata', () => { vidReady = true; refreshVidUI(); bump(); });
+function setVidBlob(b){ if (vidURL) URL.revokeObjectURL(vidURL); vidURL = URL.createObjectURL(b); vidReady = false; vid.src = vidURL; vid.load(); }
+function vidActiveAt(t){ return !!(S.useVid && vidReady && vid.duration && t >= S.vidStart - 0.05 && t <= S.vidStart + vid.duration); }
+function syncVid(t){
+  if (!S.useVid || !vidReady) return;
+  const vt = t - S.vidStart;
+  if (vt < 0 || vt > vid.duration){ if (!vid.paused) vid.pause(); return; }
+  if (!audio.paused){ if (vid.paused) vid.play().catch(() => {}); if (Math.abs(vid.currentTime - vt) > 0.18) vid.currentTime = vt; }
+  else { if (!vid.paused) vid.pause(); if (Math.abs(vid.currentTime - vt) > 0.04) vid.currentTime = vt; }
+}
+function drawVid(t, R){
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const z = 1 + pulse * 0.02 * R; ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); drawFit(ctx, vid, -W / 2, -H / 2, W, H); ctx.restore();
+  const g = ctx.createLinearGradient(0, 940, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.75)'); ctx.fillStyle = g; ctx.fillRect(0, 940, W, H - 940);
+}
+function refreshVidUI(){
+  $('tVid').checked = S.useVid; $('vidStartV').textContent = fmt(S.vidStart, true);
+  $('vidStat').textContent = vidURL ? (vidReady ? fmt(vid.duration) + ' Video' : 'lädt …') : 'kein Video';
+  $('vidLbl').classList.toggle('has', !!vidURL);
+}
+
+/* ================= Platform & Hook-Finder ================= */
+const SAFE = { reels: { t: 250, b: 420, r: 130, n: 'Instagram Reels' }, tiktok: { t: 170, b: 480, r: 150, n: 'TikTok' }, shorts: { t: 200, b: 400, r: 120, n: 'YouTube Shorts' } };
+function drawSafe(){
+  const z = SAFE[S.platform]; if (!z) return;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = 'rgba(255,59,48,0.16)';
+  ctx.fillRect(0, 0, W, z.t); ctx.fillRect(0, H - z.b, W, z.b); ctx.fillRect(W - z.r, z.t, z.r, H - z.t - z.b);
+  ctx.setLineDash([16, 12]); ctx.strokeStyle = 'rgba(255,90,80,0.8)'; ctx.lineWidth = 3; ctx.strokeRect(0, z.t, W - z.r, H - z.t - z.b); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = fnt('grotesk', 28); ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(z.n + ' · Safe-Zone', 24, z.t + 12); ctx.restore();
+}
+function refreshPlat(){
+  setSeg('segPlat', S.platform); $('tSafe').checked = S.safe;
+  $('platHint').textContent = S.platform === 'youtube' ? 'Export als 16:9 (1920 × 1080): dein Hochformat-Video mittig, links und rechts ein unscharfer, animierter Hintergrund.' :
+    'Export im Hochformat 1080 × 1920. Die rot markierten Bereiche werden in der App von Buttons und Text verdeckt – dort sollte nichts Wichtiges stehen.';
+  $('platInfo').textContent = S.platform === 'youtube' ? '16:9' : '9:16';
+}
+async function findHooks(){
+  const L = getTimeline(); if (!L.length) return toast('Erst Lyrics timen (Tab 02)');
+  if (!audioURL) return toast('Erst einen Song laden');
+  $('hookStat').textContent = 'analysiere …';
+  let env = null;
+  try { const pcm = await getPCM(); const step = 4000; env = new Float32Array(Math.ceil(pcm.length / step));
+    for (let i = 0; i < env.length; i++){ let q = 0, c = 0; for (let k = i * step; k < Math.min(pcm.length, (i + 1) * step); k += 4){ q += pcm[k] * pcm[k]; c++; } env[i] = Math.sqrt(q / Math.max(1, c)); }
+    const so = Array.from(env).sort((a, b) => a - b); const p95 = so[Math.floor(so.length * 0.95)] || 1; for (let i = 0; i < env.length; i++) env[i] = Math.min(1, env[i] / p95);
+  } catch (e) { env = null; }
+  const len = S.clipLen; const cnt = {}; lines.forEach(l => { const k = normW(l.text); cnt[k] = (cnt[k] || 0) + 1; });
+  const cands = [];
+  L.forEach(a => {
+    const st = Math.max(0, a.start - 0.4), en = Math.min(duration || st + len, st + len); if (en - st < len * 0.8) return;
+    let n = 0, ch = 0, rep = 0; L.forEach(b => { if (b.start >= st && b.start < en){ n++; if (secClassOf(b.sec) === 2) ch++; if ((cnt[normW(b.text)] || 0) > 1) rep++; } });
+    if (!n) return; let e = 0.5; if (env){ let q = 0, c = 0; for (let i = Math.floor(st * 4); i < Math.floor(en * 4) && i < env.length; i++){ q += env[i]; c++; } e = q / Math.max(1, c); }
+    const secStart = a.k === 0 || L[a.k - 1].sec !== a.sec;
+    cands.push({ st: st, en: en, sc: ch / n * 3 + e * 2 + rep / n * 1.2 + (secStart ? 0.6 : 0), sec: secName(a.sec) || 'Abschnitt', text: a.text });
+  });
+  cands.sort((x, y) => y.sc - x.sc); const pick = [];
+  for (const c of cands){ if (pick.every(q => Math.abs(q.st - c.st) > len * 0.5)) pick.push(c); if (pick.length >= 3) break; }
+  if (!pick.length){ $('hookStat').textContent = ''; $('hookList').innerHTML = '<p class="hint">Song zu kurz für die gewählte Clip-Länge.</p>'; return; }
+  const mx = pick[0].sc;
+  $('hookList').innerHTML = pick.map((c, i) => '<button class="hk" data-st="' + c.st + '"><div><b>' + (i === 0 ? '🔥 ' : '') + fmt(c.st) + '–' + fmt(c.en) + ' · ' + esc(c.sec) + '</b><small>„' + esc(c.text) + '“</small></div><i>' + Math.round(c.sc / mx * 100) + ' %</i></button>').join('');
+  $('hookStat').textContent = len + ' s Clips';
+}
+
 /* ================= Camera ================= */
 let cam = { z: 1, x: 0, y: 0, r: 0, cls: 0 };
 function secClassOf(sec){ const n = (secName(sec) || '').toLowerCase(); if (/pre/.test(n)) return 1; if (/chorus|refrain|hook|drop/.test(n)) return 2; if (/bridge|break|build/.test(n)) return 1; return 0; }
@@ -1678,12 +1951,13 @@ function draw(t){
   cam = computeCam(L, t, R);
   if (amp > 0){ const f = Math.floor(t * 60); cam.x += (rnd(f, 1) - 0.5) * 2 * amp; cam.y += (rnd(f, 2) - 0.5) * 2 * amp; }
   ctx.save(); applyCam(0.5, 0.1);
-  if (avatarActive()){ drawAvatar(L, t, R); bgIsImage = true; }
+  if (vidActiveAt(t)){ drawVid(t, R); bgIsImage = true; }
+  else if (avatarActive()){ drawAvatar(L, t, R); bgIsImage = true; }
   else { drawBg(bg, t, R); bgIsImage = bg.key.indexOf('pack:') !== 0; }
   ctx.restore();
   const darkText = (S.pack === 'editorial' || S.pack === 'cartoon' || S.pack === 'paper') && !bgIsImage;
   paperBig = S.pack === 'paper' && !bgIsImage;
-  if (S.fxFloat && !avatarActive()){ ctx.save(); applyCam(0.8, 0.03); drawFloatFX(t, R); ctx.restore(); }
+  if (S.fxFloat && !lowLayout()){ ctx.save(); applyCam(0.8, 0.03); drawFloatFX(t, R); ctx.restore(); }
   if (S.pack === 'paper'){
     let cI = 0; for (let k = 0; k < L.length; k++){ if (L[k].start <= t) cI = k; else break; }
     const curSec = L.length ? L[cI].sec : 0; let secStart = 0;
@@ -1721,6 +1995,7 @@ function draw(t){
     ctx.save(); rr(ctx, 180, 1600, 720, 10, 5); ctx.fillStyle = darkText ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.25)'; ctx.fill();
     if (f > 0){ rr(ctx, 180, 1600, Math.max(10, 720 * f), 10, 5); ctx.fillStyle = pal(0); ctx.fill(); } ctx.restore();
   }
+  if (S.safe && !exportRange && S.platform !== 'youtube' && !thumbRendering) drawSafe();
   if (!L.length && !exportRange){ ctx.save(); ctx.fillStyle = darkText ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)'; ctx.font = fnt('grotesk', 34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('Noch nicht synchronisiert → Tab 02', 540, 1560); ctx.restore(); }
   if (exportRange){ let k = 0;
@@ -1879,6 +2154,7 @@ function applyUI(){
   $('inHandle').value = S.handle; $('inReact').value = S.react; $('reactV').textContent = S.react + ' %';
   $('inShift').value = S.shift; $('shiftV').textContent = (S.shift > 0 ? '+' : '') + S.shift.toFixed(2).replace('.', ',') + ' s';
   $('inEp').value = S.endpoint; $('inKey').value = S.apiKey || '';
+  refreshPlat(); refreshVidUI();
   $('tPart').checked = S.fxPart; $('tFloat').checked = S.fxFloat; $('tViz').checked = S.fxViz; $('tDepth').checked = S.fxDepth; setSeg('segLang', S.asrLang); setSeg('segModel', S.asrModel);
   setSeg('segPack', S.pack); renderPaperSeg(); setSeg('segEnergy', S.energy); setSeg('segImg', S.imgMode); setSeg('segRange', S.range); setSeg('segLen', S.clipLen); setSeg('segRate', syncRate); setSeg('segSub', curSub);
   const gs = $('selGenre'); gs.innerHTML = Object.keys(GENRES).map(k => '<option value="' + k + '"' + (k === S.genre ? ' selected' : '') + '>' + GENRES[k].n + '</option>').join('');
@@ -1962,6 +2238,13 @@ function pickMime(){ const c = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video
   for (const m of c){ try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (e) {} } return ''; }
 function waitSeek(t){ return new Promise(res => { let done = false; const fin = () => { if (done) return; done = true; audio.removeEventListener('seeked', fin); res(); };
   audio.addEventListener('seeked', fin); setTimeout(fin, 1500); try { audio.currentTime = t; } catch (e) { fin(); } }); }
+let ycv = null, yctx = null, ysm = null;
+function composeYT(){
+  if (!ycv){ ycv = document.createElement('canvas'); ycv.width = 1920; ycv.height = 1080; yctx = ycv.getContext('2d'); ysm = document.createElement('canvas'); ysm.width = 48; ysm.height = 27; }
+  const sc = ysm.getContext('2d'); sc.drawImage(cv, 0, 660, 1080, 607, 0, 0, 48, 27);
+  yctx.imageSmoothingQuality = 'high'; yctx.drawImage(ysm, 0, 0, 1920, 1080); yctx.fillStyle = 'rgba(0,0,0,0.45)'; yctx.fillRect(0, 0, 1920, 1080);
+  const w = 1080 * 9 / 16; yctx.save(); yctx.shadowColor = 'rgba(0,0,0,0.6)'; yctx.shadowBlur = 40; yctx.drawImage(cv, (1920 - w) / 2, 0, w, 1080); yctx.restore();
+}
 let rec = null, chunks = [], exporting = false, cancelled = false, wakeLock = null, vTracks = [], resURL = null, resFile = null, recMime = '';
 async function startExport(){
   if (!audioURL || !audioReady) return toast('Erst einen Song laden (Tab 01)');
@@ -1975,7 +2258,8 @@ async function startExport(){
   exportRange = { a: a, b: b, fadeIn: a > 0.5, fadeOut: b < duration - 0.5 };
   $('exHold').appendChild(cv); $('exOv').classList.add('on'); $('exBar').style.width = '0%'; $('exT').textContent = 'Bereite vor …';
   await waitSeek(a); draw(a);
-  const vs = cv.captureStream(30); vTracks = vs.getVideoTracks();
+  const yt = S.platform === 'youtube'; if (yt) composeYT();
+  const vs = (yt ? ycv : cv).captureStream(30); vTracks = vs.getVideoTracks();
   const stream = new MediaStream(vTracks.concat(streamDest.stream.getAudioTracks()));
   recMime = pickMime();
   const opts = { videoBitsPerSecond: 12000000, audioBitsPerSecond: 192000 }; if (recMime) opts.mimeType = recMime;
@@ -2006,7 +2290,7 @@ function finishExport(){
   if (!blob.size){ toast('Aufnahme leer – bitte nochmal versuchen'); return; }
   const ext = type.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
   const base = (P.title || 'hook').toLowerCase().replace(/[^a-z0-9äöüß]+/gi, '-').replace(/^-|-$/g, '') || 'hook';
-  const name = base + '-lyric-video.' + ext;
+  const name = base + (S.platform === 'youtube' ? '-16x9' : '') + '-lyric-video.' + ext;
   if (resURL) URL.revokeObjectURL(resURL); resURL = URL.createObjectURL(blob);
   try { resFile = new File([blob], name, { type: blob.type }); } catch (e) { resFile = null; }
   $('resVid').src = resURL; $('resCard').hidden = false;
@@ -2020,9 +2304,9 @@ async function shareRes(){ if (resFile && navigator.canShare && navigator.canSha
 function loop(){
   requestAnimationFrame(loop);
   const t = audio.currentTime || 0;
-  updateBass();
+  updateBass(); syncVid(t);
   if (exporting){
-    draw(t); const r = exportRange; const f = clamp((t - r.a) / (r.b - r.a));
+    draw(t); if (S.platform === 'youtube' && ycv) composeYT(); const r = exportRange; const f = clamp((t - r.a) / (r.b - r.a));
     $('exBar').style.width = (f * 100).toFixed(1) + '%'; $('exPct').textContent = Math.round(f * 100) + ' %';
     $('exT').textContent = fmt(t - r.a) + ' / ' + fmt(r.b - r.a) + '\nDisplay an lassen · App nicht verlassen';
     if (t >= r.b - 0.03 || audio.ended) stopExport(false);
@@ -2056,7 +2340,7 @@ function bindUI(){
   let lyT; $('inLyrics').addEventListener('input', e => { P.lyricsRaw = e.target.value; clearTimeout(lyT); lyT = setTimeout(reparse, 300); });
   $('btnReset').addEventListener('click', async () => {
     if (!confirm('Projekt wirklich zurücksetzen? Song, Cover, Lyrics, Timing und Bilder werden gelöscht.')) return;
-    audio.pause(); await dbClear(); location.reload(); });
+    audio.pause(); clearTimeout(saveT); await dbClear(); location.reload(); });
   // sync
   $('btnSyncAll').addEventListener('click', () => startSync(0));
   $('btnSyncFrom').addEventListener('click', () => { if (selLine >= 0) startSync(selLine); });
@@ -2134,6 +2418,23 @@ function bindUI(){
   bindSeg('segLang', v => { S.asrLang = v; setSeg('segLang', v); save(); });
   bindSeg('segModel', v => { S.asrModel = v; setSeg('segModel', v); save(); });
   $('btnAuto').addEventListener('click', autoSync);
+  $('btnSnap').addEventListener('click', snapNow);
+  $('selProj').addEventListener('change', e => switchProject(e.target.value));
+  $('projNew').addEventListener('click', async () => { await flushSave(); const id = 'p' + Date.now().toString(36); PROJS.push({ id: id, name: 'Neuer Song', upd: Date.now() }); await rawSet('projects', PROJS); await rawSet('curProject', id); location.reload(); });
+  $('projDup').addEventListener('click', async () => { await flushSave(); const id = 'p' + Date.now().toString(36); const ks = await dbKeys(); for (const k of ks){ const v = await dbGet(k); await rawSet('p:' + id + ':' + k, v); }
+    const q = PROJS.find(x => x.id === PID); PROJS.push({ id: id, name: ((q && q.name) || 'Song') + ' (Kopie)', upd: Date.now() }); await rawSet('projects', PROJS); await rawSet('curProject', id); location.reload(); });
+  $('projDel').addEventListener('click', async () => { if (!confirm('Dieses Projekt mit allen Bildern löschen?')) return; clearTimeout(saveT); await dbClear(); PROJS = PROJS.filter(x => x.id !== PID);
+    if (!PROJS.length) PROJS.push({ id: 'p' + Date.now().toString(36), name: 'Neuer Song', upd: Date.now() }); await rawSet('projects', PROJS); await rawSet('curProject', PROJS[0].id); location.reload(); });
+  $('fVid').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; if (!f) return; setVidBlob(f); await dbSet('vid', f); S.useVid = true; save(); refreshVidUI(); e.target.value = ''; });
+  $('vidDel').addEventListener('click', () => { if (vidURL) URL.revokeObjectURL(vidURL); vidURL = null; vidReady = false; vid.removeAttribute('src'); vid.load(); S.useVid = false; dbDel('vid'); save(); refreshVidUI(); bump(); });
+  $('tVid').addEventListener('change', e => { if (e.target.checked && !vidURL){ e.target.checked = false; return toast('Erst ein Video wählen'); } S.useVid = e.target.checked; save(); bump(); });
+  $('vidStartPv').addEventListener('click', () => { S.vidStart = Math.round((audio.currentTime || 0) * 100) / 100; save(); refreshVidUI(); dirty = true; toast('Video startet bei ' + fmt(S.vidStart, true)); });
+  $('vidStart0').addEventListener('click', () => { S.vidStart = 0; save(); refreshVidUI(); dirty = true; });
+  bindSeg('segPlat', v => { S.platform = v; if (v !== 'youtube' && S.clipLen > 60) S.clipLen = 60; refreshPlat(); save(); dirty = true; });
+  $('tSafe').addEventListener('change', e => { S.safe = e.target.checked; save(); dirty = true; });
+  $('btnHook').addEventListener('click', findHooks);
+  $('hookList').addEventListener('click', e => { const b = e.target.closest('.hk'); if (!b) return; S.range = 'clip'; S.clipStart = Math.round(parseFloat(b.dataset.st) * 10) / 10; refreshExport(); save();
+    try { audio.currentTime = S.clipStart; } catch (er) {} dirty = true; toast('Clip ab ' + fmt(S.clipStart) + ' gewählt'); });
   $('inMW').addEventListener('input', e => { S.mouthW = parseFloat(e.target.value); renderAvatarUI(); dirty = true; save(); avTestUntil = Date.now() + 1200; });
   $('inAZ').addEventListener('input', e => { S.avZoom = parseFloat(e.target.value); dirty = true; save(); });
   $('inMA').addEventListener('input', e => { S.mouthAmt = parseFloat(e.target.value); renderAvatarUI(); dirty = true; save(); avTestUntil = Date.now() + 1200; });
@@ -2175,6 +2476,7 @@ function makeIcon(){
 /* ================= Init ================= */
 async function init(){
   buildTextures(); buildPaper(); bindUI();
+  await initProjects(); renderProjects();
   const st = await dbGet('state');
   if (st){ S = Object.assign({}, DEF, st.S || {}); if (!PACKS[S.pack]) S.pack = 'cartoon'; if (!(S.paperSet >= 0 && S.paperSet < PAPER_SETS.length)) S.paperSet = 0; if (['section','line','main','cover','off'].indexOf(S.imgMode) < 0) S.imgMode = 'section';
     P = Object.assign(P, st.P || {}); P.prompts = P.prompts || {}; P.seeds = P.seeds || {}; P.ai = P.ai || {};
@@ -2182,6 +2484,7 @@ async function init(){
   if (P.lyricsRaw && (!P.secs || !P.secs.length)) reparse();
   const au = await dbGet('audio'); if (au && au.blob) setAudioBlob(au.blob, au.name);
   const cb = await dbGet('cover'); if (cb) await setCoverBlob(cb);
+  const vb = await dbGet('vid'); if (vb) setVidBlob(vb);
   const keys = await dbKeys();
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('img:') === 0){ const b = await dbGet(k); if (b) await setImgBlob(k.slice(4), b); } }
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('depth:') === 0){ const d = await dbGet(k); if (d && d.data) depthMaps[k.slice(6)] = d; } }
