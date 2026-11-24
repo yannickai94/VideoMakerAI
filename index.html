@@ -169,7 +169,7 @@ details.card[open] summary{margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 2.6</div></header>
+<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 2.7</div></header>
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="navgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A8FF"/><stop offset="1" stop-color="#4FD8FF"/></linearGradient></defs></svg>
 
 <main>
@@ -265,6 +265,11 @@ details.card[open] summary{margin-bottom:12px}
         <button class="btn sm" id="btnDice">Neu würfeln</button>
       </div>
     </div>
+    <div class="card"><div class="lbl">Video-Regie</div>
+      <div class="seg" id="segTypo"><button data-v="auto">Auto</button><button data-v="classic">Klassisch</button><button data-v="punch">Punch</button><button data-v="tunnel">Tunnel</button></div>
+      <p class="hint">Auto: Strophe klassisch, Refrain mit bildfüllenden Wörtern und Schnitten im Takt, Bridge und Drop als Flug durch einen 3D-Tunnel. Dafür im Text die Teile markieren ([Verse], [Chorus], [Bridge], [Drop]).</p>
+      <label class="tg"><span>Lebendige Szenen (Kamera, Licht, Wind)</span><input type="checkbox" id="tLive"><i></i></label>
+    </div>
     <div class="card"><div class="lbl">Bewegung im Hintergrund</div>
       <label class="tg"><span>Partikel &amp; Licht</span><input type="checkbox" id="tPart"><i></i></label>
       <label class="tg"><span>Fliegende Stil-Elemente</span><input type="checkbox" id="tFloat"><i></i></label>
@@ -328,6 +333,13 @@ details.card[open] summary{margin-bottom:12px}
   </div>
 
   <div class="sub-p" id="sub-avatar">
+    <div class="card" id="figCard"><div class="lbl"><span>Story-Figur</span><span id="figStat"></span></div>
+      <label class="tg"><span>Figur im Video</span><input type="checkbox" id="tFig"><i></i></label>
+      <textarea id="inFig" style="min-height:80px;margin-top:8px" placeholder="z. B. Fuchs mit Kapuzenpulli und Kopfhörern"></textarea>
+      <div class="row2" style="margin-top:10px"><button class="btn sm pri" id="btnFig">✦ Figur erzeugen</button><button class="btn sm" id="btnFigRe">↻ Andere Variante</button></div>
+      <div class="grid" id="figGrid" style="margin-top:12px;margin-bottom:0"></div>
+      <p class="hint">Die KI zeichnet deine Figur in drei Posen (singen, tanzen, springen) und stellt sie frei. HOOK lässt sie im Takt wippen, tanzen und springen und wechselt die Pose je nach Songteil. Ohne Key dauert das gut 2 Minuten.</p>
+    </div>
     <div class="card">
       <label class="tg"><span>Singender Avatar</span><input type="checkbox" id="tAv"><i></i></label>
       <label class="tg"><span>Blinzeln &amp; Kopfbewegung</span><input type="checkbox" id="tMimic"><i></i></label>
@@ -558,7 +570,7 @@ const DEF = { pack:'paper', palShift:0, energy:1, emojis:true, doodles:true, upp
   shift:-0.15, range:'full', clipStart:0, clipLen:30, seed:0, genre:'pop', imgMode:'section', endpoint:DEF_EP,
   apiKey:'', avatar:false, avDesc:'', mouthX:0.5, mouthY:0.38, mouthW:0.1, mouthAmt:0.8, avZoom:1.3, mouthAng:0, chinH:0, paperSet:0,
   fxPart:true, fxFloat:true, fxViz:true, fxDepth:true, mimic:true, eyes:null, asrLang:'german', asrModel:'base',
-  useVid:false, vidStart:0, platform:'reels', safe:true, fxAnim:true, fxInter:true, omoji:true, avMode:'soft', vox:true };
+  useVid:false, vidStart:0, platform:'reels', safe:true, typo:'auto', living:true, figure:false, fxAnim:true, fxInter:true, omoji:true, avMode:'soft', vox:true };
 let S = Object.assign({}, DEF);
 let P = { title:'', artist:'', lyricsRaw:'', audioName:'', secs:[], prompts:{}, seeds:{}, ai:{} };
 let lines = [];
@@ -633,7 +645,7 @@ function setAudioBlob(blob, name){
   audio.src = audioURL; audio.load(); P.audioName = name || 'Song'; refreshAudioInfo();
 }
 audio.addEventListener('loadedmetadata', () => { duration = isFinite(audio.duration) ? audio.duration : 0; audioReady = true;
-  $('scrub').max = String(duration || 1); refreshAudioInfo(); refreshExport(); dirty = true; });
+  $('scrub').max = String(duration || 1); refreshAudioInfo(); refreshExport(); dirty = true; setTimeout(estimateBeat, 900); });
 audio.addEventListener('play', updatePlayIcons);
 audio.addEventListener('pause', updatePlayIcons);
 audio.addEventListener('ended', () => { updatePlayIcons(); if (syncing) stopSync(); });
@@ -1283,11 +1295,17 @@ function drawImgBg(img, key, seg, t, R){
   const sk = hashStr(key); const q = clamp((t - seg) / 22); const z = 1.06 + 0.12 * q + pulse * 0.03 * R;
   const dir = sk % 4; const px = [-1, 1, 0, 0][dir] * 40 * q, py = [0, 0, -1, 1][dir] * 60 * q;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const shot = shotFor(key, t); ctx.save();
+  if (shot){ const sz2 = shot.sz * (1 + 0.035 * clamp((t - (curLine ? curLine.start : seg)) / 4)); ctx.translate(W / 2, H / 2); ctx.rotate(shot.tilt); ctx.scale(sz2, sz2); ctx.translate(-W / 2 + (0.5 - shot.fx) * W * (sz2 - 1) / sz2, -H / 2 + (0.5 - shot.fy) * H * (sz2 - 1) / sz2); }
   ctx.save(); ctx.translate(W / 2 + px, H / 2 + py); ctx.scale(z, z); drawFit(ctx, img, -W / 2, -H / 2, W, H, isAnon(key) ? 0.1 : 0); ctx.restore();
   const DL = getDepth(key);
   if (DL){ const E = S.energy; DL.forEach((lc, k) => { const lv = k + 1; const zz = z * (1 + 0.025 * lv + 0.02 * lv * Math.sin(t * 0.3 + sk));
     const ox = Math.sin(t * 0.23 + sk) * 12 * lv * E, oy = Math.cos(t * 0.19 + sk) * 8 * lv * E - pulse * R * 3 * lv;
+    if (S.living && k === DL.length - 1){ drawSway(lc, key, t, zz, px + ox, py + oy, isAnon(key) ? 0.1 : 0); return; }
     ctx.save(); ctx.translate(W / 2 + px + ox, H / 2 + py + oy); ctx.scale(zz, zz); drawFit(ctx, lc, -W / 2, -H / 2, W, H, isAnon(key) ? 0.1 : 0); ctx.restore(); }); }
+  ctx.restore();
+  if (S.living) drawAtmos(key, t, R);
+  if (shot && shot.cls === 2 && curLine){ const bi = beatInfo(t); if (bi.i % 4 === 0 && bi.ph < 0.12){ ctx.fillStyle = 'rgba(255,255,255,' + (0.22 * (1 - bi.ph / 0.12)) + ')'; ctx.fillRect(0, 0, W, H); } }
   const ov = { cartoon: 0.1, neon: 0.42, editorial: 0.05, street: 0.35 }[S.pack] || 0.2;
   ctx.fillStyle = 'rgba(0,0,0,' + ov + ')'; ctx.fillRect(0, 0, W, H);
   if (S.pack === 'neon'){ ctx.fillStyle = rgba(pal(0), 0.12 + 0.1 * pulse * R); ctx.fillRect(0, 0, W, H); }
@@ -2103,6 +2121,7 @@ function outlineSprite(img, size, ow){
   const w = ar >= 1 ? size : size * ar, h = ar >= 1 ? size / ar : size;
   const c = mkC(Math.ceil(w + ow * 2 + 24), Math.ceil(h + ow * 2 + 24)), x = c.getContext('2d'); const ox = (c.width - w) / 2, oy = (c.height - h) / 2;
   const sh = mkC(c.width, c.height), sx = sh.getContext('2d'); sx.drawImage(img, ox, oy, w, h); sx.globalCompositeOperation = 'source-in'; sx.fillStyle = '#ffffff'; sx.fillRect(0, 0, sh.width, sh.height);
+  try { const id = sx.getImageData(0, 0, sh.width, sh.height), dd = id.data; for (let i = 3; i < dd.length; i += 4) dd[i] = dd[i] > 120 ? 255 : 0; sx.putImageData(id, 0, 0); } catch (e) {}
   x.save(); x.shadowColor = 'rgba(0,0,0,0.35)'; x.shadowBlur = 14; x.shadowOffsetY = 6; x.drawImage(sh, 0, 0); x.restore();
   for (let a = 0; a < 16; a++) x.drawImage(sh, Math.cos(a / 16 * 6.283) * ow, Math.sin(a / 16 * 6.283) * ow);
   x.drawImage(img, ox, oy, w, h); return c;
@@ -2136,11 +2155,41 @@ function blobToImg(b){ return new Promise((res, rej) => { const u = URL.createOb
 async function trimAlpha(blob){
   const img = await blobToImg(blob); const w = img.naturalWidth, h = img.naturalHeight; const c = mkC(w, h), x = c.getContext('2d'); x.drawImage(img, 0, 0);
   const d = x.getImageData(0, 0, w, h).data; let x0 = w, y0 = h, x1 = 0, y1 = 0;
-  for (let y = 0; y < h; y += 2) for (let q = 0; q < w; q += 2){ if (d[(y * w + q) * 4 + 3] > 24){ if (q < x0) x0 = q; if (q > x1) x1 = q; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+  for (let y = 0; y < h; y += 2) for (let q = 0; q < w; q += 2){ if (d[(y * w + q) * 4 + 3] > 90){ if (q < x0) x0 = q; if (q > x1) x1 = q; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
   if (x1 <= x0 || y1 <= y0) return blob;
   const pd = 8; x0 = Math.max(0, x0 - pd); y0 = Math.max(0, y0 - pd); x1 = Math.min(w, x1 + pd); y1 = Math.min(h, y1 + pd);
   const o = mkC(x1 - x0, y1 - y0); o.getContext('2d').drawImage(c, x0, y0, x1 - x0, y1 - y0, 0, 0, x1 - x0, y1 - y0);
   return await new Promise(res => o.toBlob(res, 'image/png'));
+}
+async function cropAnon(blob){ const img = await blobToImg(blob); const w = img.naturalWidth, h = img.naturalHeight; const c = mkC(w, Math.round(h * 0.92)); c.getContext('2d').drawImage(img, 0, 0); return await new Promise(res => c.toBlob(res, 'image/png')); }
+function boxPass(a, w, h, r, isMin, horiz){
+  const o = new Uint8Array(a.length);
+  if (horiz){ for (let y = 0; y < h; y++){ const b = y * w; for (let x = 0; x < w; x++){ let v = isMin ? 1 : 0; for (let k = -r; k <= r; k++){ const xx = x + k; const u = (xx < 0 || xx >= w) ? 0 : a[b + xx]; if (isMin ? !u : u){ v = isMin ? 0 : 1; break; } } o[b + x] = v; } } }
+  else { for (let x = 0; x < w; x++){ for (let y = 0; y < h; y++){ let v = isMin ? 1 : 0; for (let k = -r; k <= r; k++){ const yy = y + k; const u = (yy < 0 || yy >= h) ? 0 : a[yy * w + x]; if (isMin ? !u : u){ v = isMin ? 0 : 1; break; } } o[y * w + x] = v; } } }
+  return o;
+}
+function cleanMask(d, w, h){
+  let m = new Uint8Array(w * h); for (let i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 128 ? 1 : 0;
+  m = boxPass(boxPass(m, w, h, 3, true, true), w, h, 3, true, false);
+  const lab = new Int32Array(w * h), q = new Int32Array(w * h); const areas = [0]; let nl = 0;
+  for (let i = 0; i < m.length; i++){ if (!m[i] || lab[i]) continue; nl++; let qh = 0, qt = 0, ar = 0; q[qt++] = i; lab[i] = nl;
+    while (qh < qt){ const p = q[qh++]; ar++; const x = p % w, y = (p / w) | 0;
+      if (x > 0 && m[p - 1] && !lab[p - 1]){ lab[p - 1] = nl; q[qt++] = p - 1; } if (x < w - 1 && m[p + 1] && !lab[p + 1]){ lab[p + 1] = nl; q[qt++] = p + 1; }
+      if (y > 0 && m[p - w] && !lab[p - w]){ lab[p - w] = nl; q[qt++] = p - w; } if (y < h - 1 && m[p + w] && !lab[p + w]){ lab[p + w] = nl; q[qt++] = p + w; } }
+    areas.push(ar); }
+  if (nl < 1) return; const big = Math.max.apply(null, areas); const keep = areas.map(a => a >= big * 0.12);
+  let k = new Uint8Array(w * h); for (let i = 0; i < k.length; i++) k[i] = lab[i] && keep[lab[i]] ? 1 : 0;
+  k = boxPass(boxPass(k, w, h, 6, false, true), w, h, 6, false, false);
+  for (let i = 0; i < k.length; i++) if (!k[i]) d[i * 4 + 3] = 0;
+}
+async function cutOut(r){
+  const src = r.anon ? await cropAnon(r.blob) : r.blob;
+  if (!BRmod) BRmod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
+  const cut = await (BRmod.removeBackground || BRmod.default)(src, { model: 'isnet_quint8', output: { format: 'image/png' } });
+  const img = await blobToImg(cut); const w = img.naturalWidth, h = img.naturalHeight; const c = mkC(w, h), x = c.getContext('2d'); x.drawImage(img, 0, 0);
+  const id = x.getImageData(0, 0, w, h), d = id.data; for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 60 ? 0 : d[i] > 200 ? 255 : Math.round((d[i] - 60) / 140 * 255);
+  try { cleanMask(d, w, h); } catch (e) { console.warn(e); } x.putImageData(id, 0, 0);
+  return await trimAlpha(await new Promise(res => c.toBlob(res, 'image/png')));
 }
 async function setStkBlob(n, blob){ const img = await blobToImg(blob); stkImgs[n] = { img: img, url: img.src, out: outlineSprite(img, 420, 12) }; bump(); }
 function suggestStickers(){
@@ -2164,10 +2213,7 @@ async function genStickers(only){
       const prompt = w + ', single object, die-cut sticker illustration, ' + (pk().img || '') + ', bold clean shapes, centered, isolated on a plain pure white background, no text, no letters';
       const r = await fetchAI(prompt, hashStr(n + (P.seeds['stk:' + n] || 0)) % 100000, 768, 768, st);
       st('„' + w + '“: stelle frei …');
-      if (!BRmod) BRmod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
-      const rb = BRmod.removeBackground || BRmod.default;
-      let cut = await rb(r.blob, { model: 'isnet_quint8', output: { format: 'image/png' } });
-      cut = await trimAlpha(cut); await dbSet('stk:' + n, cut); await setStkBlob(n, cut); ok++; renderStk();
+      const cut = await cutOut(r); await dbSet('stk:' + n, cut); await setStkBlob(n, cut); ok++; renderStk();
     }
     st(ok + ' Sticker fertig ✓');
   } catch (e) { console.warn(e); st('Fehler: ' + String(e.message || e).slice(0, 60)); }
@@ -2279,6 +2325,152 @@ function refreshAvMode(){
   $('av3Card').style.display = is3d ? '' : 'none'; $('avPhotoCard').style.display = is3d ? 'none' : ''; $('avMouthCard').style.display = (!is3d && imgs.avatar) ? '' : 'none';
 }
 
+/* ================= Beat, living scenes, figure, typo modes ================= */
+async function estimateBeat(){
+  try {
+    const key = (P.audioName || '') + '|' + Math.round(duration || 0); if (P.beat && P.beat.key === key) return;
+    const pcm = await getPCM(); const hop = 160, n = Math.floor(pcm.length / hop); if (n < 400) return;
+    const env = new Float32Array(n); let prev = 0;
+    for (let i = 0; i < n; i++){ let e = 0; for (let k = i * hop, e2 = k + hop; k < e2; k++) e += pcm[k] * pcm[k]; e = Math.log(1e-6 + e); env[i] = Math.max(0, e - prev); prev = e; }
+    const m = Math.min(n, 9000); let best = 50, bs = -1;
+    for (let lag = 33; lag <= 86; lag++){ let sc = 0; for (let i = 0; i + lag < m; i++) sc += env[i] * env[i + lag]; const bpm = 6000 / lag; sc *= (bpm >= 88 && bpm <= 165) ? 1.12 : 1; if (sc > bs){ bs = sc; best = lag; } }
+    let bo = 0, bv = -1; for (let off = 0; off < best; off++){ let v = 0; for (let i = off; i < m; i += best) v += env[i]; if (v > bv){ bv = v; bo = off; } }
+    P.beat = { key: key, p: best / 100, off: bo / 100 }; save(); dirty = true;
+  } catch (e) { console.warn('beat', e); }
+}
+function beatInfo(t){ const b = P.beat && P.beat.p ? P.beat : { p: 0.5, off: 0 }; const x = (t - b.off) / b.p; const i = Math.floor(x); return { i: i, ph: x - i, p: b.p }; }
+let curLine = null;
+function shotFor(key, t){
+  if (!S.living || !curLine) return null; const cls = secClassOf(curLine.sec);
+  let k = curLine.k || 0; if (cls === 2){ const bi = beatInfo(t); k = k * 7 + Math.floor(bi.i / 4); }
+  const h = hashStr(key + ':' + k); const rr2 = (n) => ((h >>> (n * 3)) % 1000) / 1000;
+  const wide = rr2(1) < 0.35; const sz = wide ? 1 : 1.18 + rr2(2) * (cls === 2 ? 0.45 : 0.3);
+  return { k: k, sz: sz, fx: 0.3 + rr2(3) * 0.4, fy: 0.3 + rr2(4) * 0.4, tilt: cls === 2 ? (rr2(5) - 0.5) * 0.09 : 0, cls: cls };
+}
+function drawAtmos(key, t, R){
+  const h = hashStr(key), E = S.energy; const fromL = h % 2 === 0;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 5; i++){ const a0 = (fromL ? 0.35 : Math.PI - 0.35 - 0.5) + i * 0.11 + Math.sin(t * 0.3 + i) * 0.03; const ox = fromL ? -80 : W + 80;
+    const al = (0.05 + 0.04 * Math.sin(t * 0.7 + i * 2)) * (1 + pulse * 0.8 * R);
+    const g = ctx.createLinearGradient(ox, -80, ox + Math.cos(a0) * 1900, -80 + Math.sin(a0) * 1900); g.addColorStop(0, 'rgba(255,240,210,' + al + ')'); g.addColorStop(1, 'rgba(255,240,210,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(ox, -80); ctx.lineTo(ox + Math.cos(a0) * 2200, -80 + Math.sin(a0) * 2200); ctx.lineTo(ox + Math.cos(a0 + 0.06) * 2200, -80 + Math.sin(a0 + 0.06) * 2200); ctx.closePath(); ctx.fill(); }
+  for (let i = 0; i < 45; i++){ const x = (rnd(i, 1) * W + t * (8 + rnd(i, 2) * 18) * E + Math.sin(t * 0.8 + i) * 20) % W, y = (rnd(i, 3) * H - t * (6 + rnd(i, 4) * 14) * E + H * 10) % H;
+    const r = 2 + rnd(i, 5) * 4, tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.3 + i)); ctx.fillStyle = 'rgba(255,245,220,' + (0.35 * tw) + ')'; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill(); }
+  ctx.restore();
+  ctx.save(); for (let i = 0; i < 3; i++){ const y = H * (0.72 + i * 0.09), x = ((t * (14 + i * 9) * E + i * 400) % (W * 2)) - W * 0.5; const g = ctx.createRadialGradient(x, y, 0, x, y, 700);
+    g.addColorStop(0, 'rgba(220,225,240,' + (0.1 + i * 0.03) + ')'); g.addColorStop(1, 'rgba(220,225,240,0)'); ctx.fillStyle = g; ctx.fillRect(x - 700, y - 700, 1400, 1400); } ctx.restore();
+}
+function drawSway(lc, key, t, zz, ox, oy, crop){
+  const full = cached('sway:' + key + ':' + lc.width, () => { const c = mkC(W, H); drawFit(c.getContext('2d'), lc, 0, 0, W, H, crop); return c; });
+  const E = S.energy, N = 48, sh = H / N;
+  ctx.save(); ctx.translate(W / 2 + ox, H / 2 + oy); ctx.scale(zz, zz); ctx.translate(-W / 2, -H / 2);
+  for (let r = 0; r < N; r++){ const y = r * sh, hf = 1 - r / N; const dx = Math.sin(t * 1.4 + r * 0.09) * 10 * hf * hf * E + Math.sin(t * 0.6) * 6 * hf * E;
+    ctx.drawImage(full, 0, y, W, sh + 1, dx, y, W, sh + 1); }
+  ctx.restore();
+}
+// --- story figure
+const figs = []; let figBusy = false;
+const FIG_POSES = ['standing confidently and singing into a microphone', 'dancing energetically with both arms raised high', 'jumping in the air in a dynamic action pose'];
+async function setFigBlob(i, blob){ const img = await blobToImg(blob); figs[i] = { img: img, url: img.src, out: outlineSprite(img, 940, 10) }; renderFig(); bump(); }
+function renderFig(){
+  $('inFig').value = P.figDesc || ''; $('tFig').checked = S.figure;
+  $('figGrid').innerHTML = [0, 1, 2].map(i => { const e = figs[i]; return '<div class="ic"><div class="ith" style="background-size:contain;background-color:transparent;' + (e ? 'background-image:url(' + e.url + ')' : '') + '">' + (e ? '' : 'leer') + '</div><div class="icl">' + ['Singen', 'Tanzen', 'Springen'][i] + '</div></div>'; }).join('');
+}
+async function genFigure(){
+  if (figBusy) return; const desc = ($('inFig').value || '').trim() || (S.avDesc || '').trim(); if (!desc) return toast('Erst die Figur beschreiben');
+  P.figDesc = desc; save(); figBusy = true; const st = m => { $('figStat').textContent = m; }; const seed = (hashStr(desc) + (P.seeds.fig || 0)) % 100000;
+  try {
+    for (let i = 0; i < 3; i++){
+      st('Pose ' + (i + 1) + '/3: zeichne …');
+      const prompt = desc + ', full body character from head to toe, ' + FIG_POSES[i] + ', ' + (pk().img || '') + ', flat vector cartoon character, bold clean black outlines, vivid colors, same character design, centered, isolated on a plain pure white background, no text, no shadow';
+      const r = await fetchAI(prompt, seed, 768, 1152, st);
+      st('Pose ' + (i + 1) + '/3: stelle frei …');
+      const cut = await cutOut(r); await dbSet('fig:' + i, cut); await setFigBlob(i, cut);
+    }
+    S.figure = true; save(); renderFig(); st('Figur fertig ✓');
+  } catch (e) { console.warn(e); st('Fehler: ' + String(e.message || e).slice(0, 60)); }
+  finally { figBusy = false; }
+}
+function drawFigure(L, t, R){
+  if (!S.figure || !figs.some(Boolean) || !L.length) return;
+  const first = L[0].start; if (t < first - 1.2) return;
+  const a = curLine || L[0]; const cls = secClassOf(a.sec); const bi = beatInfo(t);
+  let pose = cls === 2 ? (Math.floor(bi.i / 2) % 2 ? 2 : 1) : cls === 1 ? (Math.floor(bi.i / 4) % 2 ? 1 : 0) : 0;
+  if (!figs[pose]) pose = figs.findIndex(Boolean); const spr = figs[pose].out;
+  const amp = [0.45, 0.75, 1][cls] * S.energy; const bounce = Math.pow(1 - bi.ph, 3);
+  const side = hashStr('fs' + a.sec) % 3; const tx = [300, 780, 540][side];
+  const enter = clamp((t - first + 1.2) / 0.8); const hop = cls === 2 ? Math.sin(Math.PI * bi.ph) * 70 * amp : 0;
+  const sw = Math.sin(t * Math.PI / bi.p) * 34 * amp; const sy = 1 - 0.07 * bounce * amp, sx = 1 + 0.05 * bounce * amp;
+  const fh = 860, fw = fh * spr.width / spr.height; const feet = 1720 + (1 - easeOut(enter)) * 900 - hop;
+  const swap = clamp(((t - bi.p * Math.floor(bi.i / 2) * 2 - (P.beat ? P.beat.off : 0)) ) / 0.12); const pz = 0.92 + 0.08 * easeOutBack(Math.min(1, swap));
+  ctx.save(); ctx.globalAlpha = 0.35 * enter; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(tx, 1730, fw * 0.32 * (1 - hop / 400), 26, 0, 0, 6.283); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(tx, feet); ctx.rotate(sw * 0.0016); ctx.scale(sx * pz, sy * pz);
+  const N = 40, sh = spr.height / N, dh = fh / N;
+  for (let r = 0; r < N; r++){ const hf = 1 - r / N; let dx = sw * hf * hf; if (hf > 0.72) dx += Math.sin(t * 2 * Math.PI / bi.p - 0.9) * 14 * amp * (hf - 0.72) * 3.5;
+    ctx.drawImage(spr, 0, r * sh, spr.width, sh + 0.6, -fw / 2 + dx, -fh + r * dh, fw, dh + 0.8); }
+  ctx.restore();
+}
+// --- typo modes
+function typoFor(a){
+  if (a.i < 0 || lowLayout()) return 'classic'; if (S.typo !== 'auto') return S.typo || 'classic';
+  const n = (secName(a.sec) || '').toLowerCase();
+  if (/drop|bridge|pre|build|break/.test(n)) return 'tunnel'; if (/chorus|refrain|hook/.test(n)) return 'punch'; return 'classic';
+}
+function groupsOf(a, sc){
+  if (sc.groups) return sc.groups; const g = []; let cur = null;
+  a.words.forEach((w, j) => { const len = w.length; if (!cur || cur.n >= 3 || cur.c + len > 11 || len >= 8 || j === sc.keyIdx){ cur = { j0: j, j1: j, n: 1, c: len }; g.push(cur); if (len >= 8 || j === sc.keyIdx) cur.n = 3; } else { cur.j1 = j; cur.n++; cur.c += len + 1; } });
+  sc.groups = g; return g;
+}
+function punchText(txt, x, y, sz, fill, ext, glow){
+  ctx.font = fnt(pk().sets[0].key, sz); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (ext){ ctx.fillStyle = ext; const d = Math.max(4, sz * 0.045); for (let i = 6; i >= 1; i--) ctx.fillText(txt, x + d * i / 6 * 1.2, y + d * i / 6 * 1.2); }
+  if (glow){ ctx.shadowColor = glow; ctx.shadowBlur = 30; } ctx.fillStyle = fill; ctx.fillText(txt, x, y); ctx.shadowBlur = 0;
+}
+function drawPunch(a, sc, t, R){
+  const G = groupsOf(a, sc); let gi = -1; for (let k = 0; k < G.length; k++){ if ((a.wt[G[k].j0] || a.start) - 0.04 <= t) gi = k; }
+  if (gi < 0) return; const g = G[gi]; const gs = a.wt[g.j0] || a.start;
+  const out = 1 - clamp((t - a.end) / 0.25); if (out <= 0) return;
+  const v = hashStr(a.i + ':' + gi) % 4; const q = clamp((t - gs) / 0.16); const pl = pk(); const P0 = pal(gi), P1 = pal(gi + 1);
+  ctx.save(); ctx.globalAlpha = out;
+  if (v === 1 || (v === 3 && gi % 2)){ ctx.fillStyle = P0; ctx.globalAlpha = out * 0.93; ctx.fillRect(-60, -60, W + 120, H + 120); ctx.globalAlpha = out; }
+  const plate = v === 1 || (v === 3 && gi % 2);
+  const ws = []; for (let j = g.j0; j <= g.j1; j++) if ((a.wt[j] || a.start) - 0.04 <= t || j === g.j0) ws.push({ w: a.words[j], j: j });
+  let sizes = ws.map(o => fitFont(o.w, x => fnt(pl.sets[0].key, x), 960, 420, 60)); const tot = sizes.reduce((x, y) => x + y * 0.92, 0); if (tot > 1150) sizes = sizes.map(z => z * 1150 / tot);
+  const z = 1.32 - 0.32 * easeOut(q); const sh = gs > t - 0.14 ? (1 - q) * 18 * S.energy : 0;
+  ctx.translate(540 + (rnd(Math.floor(t * 60), 3) - 0.5) * sh, 900 + (rnd(Math.floor(t * 60), 4) - 0.5) * sh); ctx.rotate((v === 3 ? -0.07 : v === 2 ? 0.04 : 0) + (1 - easeOut(q)) * 0.12 * (gi % 2 ? 1 : -1)); ctx.scale(z * (1 + pulse * 0.05 * R), z * (1 + pulse * 0.05 * R));
+  let y = -sizes.reduce((x, s2) => x + s2 * 0.92, 0) / 2;
+  ws.forEach((o, k) => { const s2 = sizes[k]; y += s2 * 0.46; const wq = clamp((t - (a.wt[o.j] || a.start) + 0.04) / 0.12); const wz = 0.7 + 0.3 * easeOutBack(wq);
+    ctx.save(); ctx.translate(0, y); ctx.scale(wz, wz);
+    const key = o.j === sc.keyIdx; const fill = plate ? pl.ink : (key ? P1 : (pl.light && !bgIsImage ? pl.ink : '#ffffff'));
+    if (v === 2 && !key && k % 2 === 1){ ctx.font = fnt(pl.sets[0].key, s2); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = Math.max(4, s2 * 0.035); ctx.strokeStyle = fill; ctx.strokeText(o.w, 0, 0); }
+    else punchText(o.w, 0, 0, s2, fill, plate ? rgba(pl.ink, 0.25) : rgba('#000000', 0.45), (!plate && !pl.light) ? rgba(P0, 0.6) : null);
+    ctx.restore(); y += s2 * 0.46; });
+  if (v === 3 && !plate){ ctx.fillStyle = P0; rr(ctx, -380, y + 20, 760 * easeOut(q), 22, 11); ctx.fill(); }
+  ctx.restore();
+}
+function drawTunnel(a, sc, t, R){
+  const n = a.words.length; if (!n) return; const D = 900, F = 700; const pl = pk();
+  const wt = j => (a.wt[j] != null ? a.wt[j] : a.start);
+  let zc; if (t <= wt(0)) zc = -F - (wt(0) - t) * D * 1.6;
+  else if (t >= wt(n - 1)) zc = (n - 1) * D - F + (t - wt(n - 1)) * D * 0.7;
+  else { let j = 0; while (j < n - 2 && wt(j + 1) <= t) j++; const f = clamp((t - wt(j)) / Math.max(0.05, wt(j + 1) - wt(j))); zc = (j + easeInOut(f)) * D - F; }
+  const out = clamp((t - a.start + 0.1) / 0.25) * (1 - clamp((t - a.end) / 0.35)); if (out <= 0) return;
+  ctx.save(); ctx.globalAlpha = out; ctx.translate(540, 900); ctx.rotate(Math.sin(t * 0.6 + a.i) * 0.08 * S.energy); ctx.translate(-540, -900);
+  const r0 = Math.floor(zc / (D / 2)) + 1;
+  for (let k = r0 + 9; k >= r0; k--){ const dz = k * D / 2 - zc; if (dz < 40) continue; const s2 = F / dz; const al = clamp((dz - 40) / 200) * clamp((4200 - dz) / 1800) * 0.7;
+    if (al <= 0) continue; ctx.save(); ctx.globalAlpha = out * al; ctx.strokeStyle = pal(k); ctx.lineWidth = Math.max(1.5, 10 * s2); const cx = 540 + Math.sin(k * 1.3) * 60 * s2, cy = 900 + Math.cos(k * 0.9) * 50 * s2;
+    rr(ctx, cx - 620 * s2, cy - 1000 * s2, 1240 * s2, 2000 * s2, 60 * s2); ctx.stroke(); ctx.restore(); }
+  for (let j = n - 1; j >= 0; j--){
+    const dz = j * D - zc; if (dz < 50) continue; const s2 = F / dz; let al = clamp((dz - 50) / 260) * clamp((5200 - dz) / 2000); if (al <= 0) continue;
+    const sung = wt(j) <= t + 0.03; if (!sung) al *= 0.4;
+    const x = 540 + Math.sin(j * 2.1 + a.i) * 230 * s2, y = 900 + Math.cos(j * 1.7 + a.i) * 180 * s2; const rot = (rnd(a.i * 31 + j, 7) - 0.5) * 0.35;
+    const key = j === sc.keyIdx; const sz = fitFont(a.words[j], q => fnt(pl.sets[0].key, q), 900, key ? 330 : 250, 60);
+    ctx.save(); ctx.globalAlpha = out * al; ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s2, s2);
+    punchText(a.words[j], 0, 0, sz, key ? pal(1) : (pl.light && !bgIsImage ? pl.ink : '#ffffff'), rgba('#000000', 0.4), pl.light ? null : rgba(pal(j), 0.7));
+    ctx.restore(); }
+  ctx.restore();
+}
+
 /* ================= Camera ================= */
 let cam = { z: 1, x: 0, y: 0, r: 0, cls: 0 };
 function secClassOf(sec){ const n = (secName(sec) || '').toLowerCase(); if (/pre/.test(n)) return 1; if (/chorus|refrain|hook|drop/.test(n)) return 2; if (/bridge|break|build/.test(n)) return 1; return 0; }
@@ -2327,6 +2519,7 @@ function draw(t){
   const L = getTimeline(); const R = S.react / 100; const p = pk();
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; ctx.shadowColor = 'transparent'; ctx.globalCompositeOperation = 'source-over'; ctx.setLineDash([]);
   const bg = bgState(L, t);
+  curLine = null; for (let k = 0; k < L.length; k++){ if (L[k].start <= t){ curLine = L[k]; curLine.k = k; } else break; }
   // shake
   let amp = 0;
   for (const a of L){ if (t < a.start || t > a.end) continue; const sc = getScene(a); if ((sc.anim === 'slam' || sc.anim === 'fly') && sc.keyIdx >= 0){ const q = (t - a.wt[sc.keyIdx] - 0.2) / 0.3; if (q > 0 && q < 1) amp = Math.max(amp, (1 - q) * 16 * S.energy); } }
@@ -2339,6 +2532,7 @@ function draw(t){
   else { drawBg(bg, t, R); bgIsImage = bg.key.indexOf('pack:') !== 0; }
   ctx.restore();
   if (avatarActive() && S.avMode === '3d' && !vidActiveAt(t)){ const c3 = render3D(L, t, R); if (c3){ ctx.save(); applyCam(0.75); ctx.drawImage(c3, 0, 40, 1080, 1440); ctx.restore(); } }
+  if (S.figure && !thumbRendering){ ctx.save(); applyCam(0.75, 0.02); drawFigure(L, t, R); ctx.restore(); }
   curT = t;
   const darkText = (S.pack === 'editorial' || S.pack === 'cartoon' || S.pack === 'paper' || !!pk().light) && !bgIsImage;
   paperBig = S.pack === 'paper' && !bgIsImage && !lowLayout();
@@ -2365,7 +2559,8 @@ function draw(t){
         ctx.fillStyle = darkText ? p.ink : '#ffffff'; if (!darkText){ ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 16; }
         ctx.fillText(P.artist, 540, Math.min(1600, sc.cy + sc.box.y1 + 110)); ctx.restore(); } }
   }
-  for (const a of L){ if (t < a.start - 0.1 || t > a.end + 0.35) continue; drawScene(a, getScene(a), t, R); }
+  for (const a of L){ if (t < a.start - 0.1 || t > a.end + 0.35) continue; const tm = thumbRendering ? 'classic' : typoFor(a);
+    if (tm === 'punch') drawPunch(a, getScene(a), t, R); else if (tm === 'tunnel') drawTunnel(a, getScene(a), t, R); else drawScene(a, getScene(a), t, R); }
   ctx.restore();
   // top title
   if (S.showTitle && (P.title || P.artist) && t >= first - 0.3 && !(S.pack === 'editorial' && !bgIsImage) && S.pack !== 'paper'){
@@ -2541,7 +2736,7 @@ function applyUI(){
   $('inHandle').value = S.handle; $('inReact').value = S.react; $('reactV').textContent = S.react + ' %';
   $('inShift').value = S.shift; $('shiftV').textContent = (S.shift > 0 ? '+' : '') + S.shift.toFixed(2).replace('.', ',') + ' s';
   $('inEp').value = S.endpoint; $('inKey').value = S.apiKey || '';
-  refreshPlat(); refreshVidUI(); renderStk(); $('tFxA').checked = S.fxAnim; $('tInter').checked = S.fxInter; $('tOm').checked = S.omoji;
+  refreshPlat(); refreshVidUI(); renderStk(); renderFig(); setSeg('segTypo', S.typo); $('tLive').checked = S.living; $('tFxA').checked = S.fxAnim; $('tInter').checked = S.fxInter; $('tOm').checked = S.omoji;
   $('tPart').checked = S.fxPart; $('tFloat').checked = S.fxFloat; $('tViz').checked = S.fxViz; $('tDepth').checked = S.fxDepth; setSeg('segLang', S.asrLang); $('tVox').checked = S.vox; setSeg('segModel', S.asrModel);
   setSeg('segPack', S.pack); renderPaperSeg(); setSeg('segEnergy', S.energy); setSeg('segImg', S.imgMode); setSeg('segRange', S.range); setSeg('segLen', S.clipLen); setSeg('segRate', syncRate); setSeg('segSub', curSub);
   const gs = $('selGenre'); gs.innerHTML = Object.keys(GENRES).map(k => '<option value="' + k + '"' + (k === S.genre ? ' selected' : '') + '>' + GENRES[k].n + '</option>').join('');
@@ -2806,6 +3001,12 @@ function bindUI(){
   bindSeg('segLang', v => { S.asrLang = v; setSeg('segLang', v); save(); });
   bindSeg('segModel', v => { S.asrModel = v; setSeg('segModel', v); save(); });
   $('btnAuto').addEventListener('click', autoSync);
+  bindSeg('segTypo', v => { S.typo = v; setSeg('segTypo', v); save(); bump(); });
+  $('tLive').addEventListener('change', e => { S.living = e.target.checked; save(); dirty = true; });
+  $('tFig').addEventListener('change', e => { S.figure = e.target.checked; save(); dirty = true; if (S.figure && !figs.some(Boolean)) toast('Erst „Figur erzeugen“ tippen'); });
+  $('inFig').addEventListener('change', e => { P.figDesc = e.target.value.trim(); save(); });
+  $('btnFig').addEventListener('click', genFigure);
+  $('btnFigRe').addEventListener('click', () => { P.seeds.fig = Math.floor(Math.random() * 1e6); save(); genFigure(); });
   bindSeg('segAvMode', v => { S.avMode = v; save(); refreshAvMode(); meshCache = null; bump(); if (v === '3d' && !(av3 && av3.ready)){ dbGet('glb').then(b => { if (b){ if (av3URL) URL.revokeObjectURL(av3URL); av3URL = URL.createObjectURL(b); load3D(av3URL); } else load3D(AV3_SAMPLE); }); } });
   $('av3Sample').addEventListener('click', () => { S.avatar = true; dbDel('glb'); load3D(AV3_SAMPLE); save(); renderAvatarUI(); });
   $('fGlb').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; if (!f) return; await dbSet('glb', f); if (av3URL) URL.revokeObjectURL(av3URL); av3URL = URL.createObjectURL(f); S.avatar = true; save(); renderAvatarUI(); load3D(av3URL); e.target.value = ''; });
@@ -2887,6 +3088,7 @@ async function init(){
   const vb = await dbGet('vid'); if (vb) setVidBlob(vb);
   const keys = await dbKeys();
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('img:') === 0){ const b = await dbGet(k); if (b) await setImgBlob(k.slice(4), b); } }
+  for (const k of keys){ if (typeof k === 'string' && k.indexOf('fig:') === 0){ const b = await dbGet(k); if (b) await setFigBlob(+k.slice(4), b); } }
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('stk:') === 0){ const b = await dbGet(k); if (b) await setStkBlob(k.slice(4), b); } }
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('depth:') === 0){ const d = await dbGet(k); if (d && d.data) depthMaps[k.slice(6)] = d; } }
   setTimeout(prebuildDepth, 1500);
