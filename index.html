@@ -125,7 +125,18 @@ nav button.on svg{stroke:url(#navgrad)}
 .player .mono{font:600 13px var(--font);color:var(--tx2);min-width:40px;text-align:right;font-variant-numeric:tabular-nums}
 .player .play{width:42px;height:42px;font-size:15px}
 .sub-p{display:none}.sub-p.on{display:block;animation:fadeIn .3s ease}
-.car{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:4px 16px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fbar{display:flex;gap:14px;overflow-x:auto;margin:10px -16px 0;padding:4px 16px 2px;scroll-padding-inline:16px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fbar::-webkit-scrollbar{display:none}
+.fbar button{flex:0 0 auto;width:64px;scroll-snap-align:center;background:none;border:0;padding:0;color:var(--tx3);font:600 11px var(--font);text-align:center;cursor:pointer}
+.fbar button i{display:block;width:60px;height:60px;margin:0 auto;border-radius:50%;padding:2px;background:rgba(255,255,255,.14);transition:background .2s,transform .2s}
+.fbar button canvas{display:block;width:56px;height:56px;border-radius:50%;background:#111;border:2px solid #0b0b12}
+.fbar button span{display:block;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbar button.on{color:#fff}.fbar button.on i{background:var(--grad);transform:scale(1.06)}
+.stick .subseg{margin:10px 0 0}
+.pv canvas{transition:height .25s ease}
+body.pvmini .pv canvas{height:min(17vh,180px)}body.pvmini .fbar button i{width:46px;height:46px}body.pvmini .fbar button canvas{width:42px;height:42px}body.pvmini .fbar button{width:50px}body.pvmini .fbar button span{display:none}
+.tg span small{display:block;font:400 12px/1.35 var(--font);color:var(--tx3);margin-top:2px}
+.car{display:flex}
 .car::-webkit-scrollbar{display:none}
 .car button{flex:0 0 108px;scroll-snap-align:start;background:none;border:0;padding:0;color:var(--tx2);text-align:center;font:600 13px var(--font);transition:transform .2s}
 .car button canvas{width:108px;height:192px;border-radius:18px;display:block;background:#111;box-shadow:0 0 0 .5px var(--stroke),0 10px 24px rgba(0,0,0,.35);transition:box-shadow .2s,transform .2s}
@@ -174,7 +185,7 @@ details.card[open] summary{margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 3.3</div></header>
+<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 3.4</div></header>
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="navgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A8FF"/><stop offset="1" stop-color="#4FD8FF"/></linearGradient></defs></svg>
 
 <main>
@@ -253,13 +264,12 @@ details.card[open] summary{margin-bottom:12px}
       <input type="range" id="scrub" min="0" max="1" step="0.01" value="0">
       <span class="mono" id="pvT">0:00</span>
     </div>
+    <div class="fbar" id="segPack"></div>
+    <div class="seg subseg" id="segSub"><button data-v="look">Farbe</button><button data-v="dir">Regie</button><button data-v="img">Bilder</button><button data-v="avatar">Figur</button><button data-v="title">Titel</button></div>
   </div>
-  <div class="seg subseg" id="segSub"><button data-v="look">Look</button><button data-v="img">Bilder</button><button data-v="avatar">Figur</button><button data-v="lines" class="pro">Zeilen</button></div>
 
   <div class="sub-p on" id="sub-look">
-    <div class="card"><div class="lbl"><span>Stil</span><span>wischen</span></div>
-      <div class="car" id="segPack"></div>
-      <div class="lbl" style="margin-top:16px">Farbe</div>
+    <div class="card"><div class="lbl">Farbe</div>
       <div id="paperRow"><div class="dots" id="segPaper"></div></div>
       <div class="palv" id="palView"></div>
       <div class="row2" style="margin-top:10px">
@@ -267,6 +277,19 @@ details.card[open] summary{margin-bottom:12px}
         <button class="btn sm" id="btnDice">Neu würfeln</button>
       </div>
     </div>
+    <div class="card pro"><div class="lbl">Bewegung im Hintergrund</div>
+      <label class="tg"><span>Partikel &amp; Licht</span><input type="checkbox" id="tPart"><i></i></label>
+      <label class="tg"><span>Fliegende Stil-Elemente</span><input type="checkbox" id="tFloat"><i></i></label>
+      <label class="tg"><span>Musik-Visualizer</span><input type="checkbox" id="tViz"><i></i></label>
+      <label class="tg"><span>Effekt-Animationen (Feuer, Blitze …)</span><input type="checkbox" id="tFxA"><i></i></label>
+      <label class="tg"><span>Szenen in Instrumental-Parts</span><input type="checkbox" id="tInter"><i></i></label>
+    </div>
+    <div class="card"><div class="lbl">Animation</div>
+      <div class="seg" id="segEnergy"><button data-v="0.6">Ruhig</button><button data-v="1">Normal</button><button data-v="1.5">Wild</button></div>
+    </div>
+  </div>
+
+  <div class="sub-p" id="sub-dir">
     <div class="card"><div class="lbl"><span>Video-Regie</span><span id="dirInfo"></span></div>
       <div class="seg" id="segDir"><button data-v="auto">Auto</button><button data-v="kino">Kino</button><button data-v="mv">Clip</button><button data-v="hype">Hype</button><button data-v="chill">Chill</button></div>
       <p class="hint">Wählt pro Zeile automatisch die Perspektive. Kino = ruhige 3D-Fahrten, Clip = Split-Screens, Hype = schnelle Schnitte, Chill = ruhig.</p>
@@ -282,27 +305,11 @@ details.card[open] summary{margin-bottom:12px}
       <div id="dirLocks"></div>
       <div class="row2" style="margin-top:12px"><button class="btn sm" id="btnDirDice">Regie neu würfeln</button><button class="btn sm" id="btnDirReset">Zurücksetzen</button></div>
     </details>
-    <div class="card pro"><div class="lbl">Bewegung im Hintergrund</div>
-      <label class="tg"><span>Partikel &amp; Licht</span><input type="checkbox" id="tPart"><i></i></label>
-      <label class="tg"><span>Fliegende Stil-Elemente</span><input type="checkbox" id="tFloat"><i></i></label>
-      <label class="tg"><span>Musik-Visualizer</span><input type="checkbox" id="tViz"><i></i></label>
-      <label class="tg"><span>Effekt-Animationen (Feuer, Blitze …)</span><input type="checkbox" id="tFxA"><i></i></label>
-      <label class="tg"><span>Szenen in Instrumental-Parts</span><input type="checkbox" id="tInter"><i></i></label>
-    </div>
-    <div class="card"><div class="lbl">Animation</div>
-      <div class="seg" id="segEnergy"><button data-v="0.6">Ruhig</button><button data-v="1">Normal</button><button data-v="1.5">Wild</button></div>
-    </div>
-    <div class="card pro"><div class="lbl">Details</div>
-      <label class="tg"><span>Großbuchstaben</span><input type="checkbox" id="tUpper"><i></i></label>
-      <label class="tg"><span>Titel-Intro &amp; Titelzeile</span><input type="checkbox" id="tTitle"><i></i></label>
-      <label class="tg"><span>Fortschrittsbalken</span><input type="checkbox" id="tProg"><i></i></label>
-      <div class="lbl" style="margin-top:14px"><span>Handle / Kanal</span></div>
-      <input type="text" id="inHandle" placeholder="@deinkanal (optional)" autocomplete="off">
-      <div class="lbl" style="margin-top:16px"><span>Beat-Reaktion</span><span id="reactV"></span></div>
-      <input type="range" id="inReact" min="0" max="100" step="5">
-    </div>
+    <details class="card pro"><summary>Zeilen einzeln anpassen</summary>
+    <p class="hint" style="margin:0 2px 12px">Wort antippen = Hauptwort (groß, eigene Schrift). 👁 zeigt die Zeile in der Vorschau, 🎲 würfelt eine neue Variante.</p>
+    <div id="lineEd"></div>
+  </details>
   </div>
-
   <div class="sub-p" id="sub-img">
     <div class="card"><div class="lbl">Hintergrund-Bild pro …</div>
       <div class="seg" id="segImg"><button data-v="section">Teil</button><button data-v="line">Zeile</button><button data-v="main">Motiv</button><button data-v="cover">Cover</button><button data-v="off">Aus</button></div>
@@ -317,12 +324,6 @@ details.card[open] summary{margin-bottom:12px}
       <div class="hint mono" id="genStat"></div>
     </div>
     <div id="imgGrid" class="grid"></div>
-    <div class="card pro"><div class="lbl"><span>Motive aus deinem Text</span><span id="stkStat"></span></div>
-      <input type="text" id="inStk" placeholder="z. B. Rose, Auto, Mond, Krone" autocomplete="off">
-      <div class="row2" style="margin-top:10px"><button class="btn sm" id="btnStkSug">Vorschläge</button><button class="btn sm pri" id="btnStk">✦ Motive erzeugen</button></div>
-      <div class="grid" id="stkGrid" style="margin-top:12px;margin-bottom:0"></div>
-      <p class="hint">Nach den Hintergrundbildern sucht HOOK automatisch Schlüsselwörter und lässt passende Motive im Look des Songs zeichnen und freistellen. Sie erscheinen, wenn das Wort gesungen wird. Hier kannst du Wörter ändern.</p>
-    </div>
     <div class="card pro"><div class="lbl"><span>3D-Tiefe</span><span id="depthStat"></span></div>
       <label class="tg"><span>Bilder räumlich bewegen</span><input type="checkbox" id="tDepth"><i></i></label>
       <button class="btn pri sm" id="btnDepth" style="margin-top:8px">🧊 Tiefe für alle Bilder berechnen</button>
@@ -379,12 +380,26 @@ details.card[open] summary{margin-bottom:12px}
     </div>
   </div>
 
-  <div class="sub-p" id="sub-lines">
-    <p class="hint" style="margin:0 2px 12px">Wort antippen = Hauptwort (groß, eigene Schrift). Emoji-Feld: leer = automatisch, „-“ = keins. 👁 zeigt die Zeile in der Vorschau, 🎲 würfelt eine neue Variante.</p>
-    <div id="lineEd"></div>
+  <div class="sub-p" id="sub-title">
+    <div class="card"><div class="lbl">Titel &amp; Kanal</div>
+      <div class="row2"><input type="text" id="inTitle2" placeholder="Songtitel" autocomplete="off"><input type="text" id="inArtist2" placeholder="Interpret" autocomplete="off"></div>
+      <input type="text" id="inHandle" placeholder="@deinkanal" autocomplete="off" autocapitalize="off" style="margin-top:10px">
+      <div class="brandl">
+        <label class="tg"><span>Titel-Intro<small>Songtitel groß zum Start, bis die erste Zeile kommt</small></span><input type="checkbox" id="tTitle"><i></i></label>
+        <label class="tg"><span>Titelzeile<small>Kleine Plakette oben mit Titel und Interpret</small></span><input type="checkbox" id="tTBar"><i></i></label>
+        <label class="tg"><span>Kanal einblenden<small>Dein @Name unter der Titelzeile</small></span><input type="checkbox" id="tHandle"><i></i></label>
+        <label class="tg"><span>Fortschritt<small>Feine Leiste oben, ein Abschnitt pro Songteil</small></span><input type="checkbox" id="tProg"><i></i></label>
+      </div>
+      <button class="btn sm" id="btnIntro" style="margin-top:12px">▶ Anfang ansehen</button>
+    </div>
+    <div class="card pro"><div class="lbl">Schrift &amp; Takt</div>
+      <label class="tg"><span>Großbuchstaben</span><input type="checkbox" id="tUpper"><i></i></label>
+      <div class="lbl" style="margin-top:16px"><span>Beat-Reaktion</span><span id="reactV"></span></div>
+      <input type="range" id="inReact" min="0" max="100" step="5">
+    </div>
   </div>
   <div class="card" style="margin-top:6px"><label class="tg"><span>Profi-Einstellungen anzeigen</span><input type="checkbox" id="tPro"><i></i></label>
-    <p class="hint">Aus: nur das Wichtigste. An: alle Regler, Effekte, Sticker, 3D-Tiefe, Zeilen-Editor und Regie-Menü.</p></div>
+    <p class="hint">Aus: nur das Wichtigste. An: alle Regler, Effekte, 3D-Tiefe, Zeilen-Editor und Regie-Menü.</p></div>
 </section>
 
 <!-- 04 EXPORT -->
@@ -469,7 +484,7 @@ details.card[open] summary{margin-bottom:12px}
 
 <script>
 /* ===== Fehler-Protokoll ===== */
-const HOOK_VER = '3.3'; let logBuf = []; const logSeen = new Set(); let logCtx = '';
+const HOOK_VER = '3.4'; let logBuf = []; const logSeen = new Set(); let logCtx = '';
 try { logBuf = JSON.parse(localStorage.getItem('hook_log') || '[]'); } catch (e) { logBuf = []; }
 function logErr(kind, msg, stack){
   try {
@@ -589,7 +604,7 @@ const EMO = [
 ];
 
 /* ================= State ================= */
-const DEF = { pack:'paper', palShift:0, energy:1, emojis:false, doodles:false, upper:true, showTitle:true, progress:false, handle:'', react:60,
+const DEF = { pack:'paper', palShift:0, energy:1, emojis:false, doodles:false, upper:true, showTitle:true, titleBar:true, showHandle:true, progress:false, handle:'', react:60,
   shift:-0.15, range:'full', clipStart:0, clipLen:30, seed:0, genre:'pop', imgMode:'section', endpoint:DEF_EP,
   apiKey:'', avatar:false, avDesc:'', mouthX:0.5, mouthY:0.38, mouthW:0.1, mouthAmt:0.8, avZoom:1.3, mouthAng:0, chinH:0, paperSet:0,
   fxPart:true, fxFloat:true, fxViz:true, fxDepth:true, mimic:true, eyes:null, asrLang:'german', asrModel:'base',
@@ -1646,7 +1661,7 @@ function uiTextures(){
     ds.setProperty('--texDark', mk('#163D14', 1)); ds.setProperty('--texLime', mk('#B6F24B', 0.75)); ds.setProperty('--texCream', mk('#F4ECD6', 0.5)); } catch (e) {}
 }
 function renderCarousel(){
-  $('segPack').innerHTML = PACK_ORDER.map(k => '<button data-v="' + k + '" class="' + (k === S.pack ? 'on' : '') + '"><canvas width="216" height="384"></canvas><span>' + esc(PACKS[k].name || k) + '</span></button>').join('');
+  $('segPack').innerHTML = PACK_ORDER.map(k => '<button data-v="' + k + '" class="' + (k === S.pack ? 'on' : '') + '"><i><canvas width="128" height="128"></canvas></i><span>' + esc(PACKS[k].name || k) + '</span></button>').join('');
 }
 function renderPaperSeg(){
   const box = $('segPaper'); let h = '';
@@ -1664,7 +1679,7 @@ function renderPackThumbs(){
   const keep = S.pack; const L = getTimeline(); let t = 0.8;
   if (L.length){ const a = L.find(x => /chorus|refrain|hook/i.test(secName(x.sec))) || L[0]; t = a.start + Math.min(1.6, (a.end - a.start) * 0.7); }
   document.querySelectorAll('#segPack button').forEach(b => { const c = b.querySelector('canvas'); if (!c) return; S.pack = b.dataset.v; bump();
-    try { draw(t); c.getContext('2d').drawImage(cv, 0, 0, c.width, c.height); } catch (e) { console.warn(e); } });
+    try { draw(t); c.getContext('2d').drawImage(cv, 0, 420, 1080, 1080, 0, 0, c.width, c.height); } catch (e) { console.warn(e); } });
   S.pack = keep; bump(); dirty = true; thumbRendering = false;
 }
 
@@ -1821,7 +1836,7 @@ function drawFloatFX(t, R){
     const type = types[i % types.length]; const sz = 60 + rnd(i, 14) * 90; const col = S.pack === 'paper' ? (i % 2 ? ps().light : '#F4ECD6') : pal(i);
     ctx.save(); ctx.globalAlpha = S.pack === 'paper' ? 0.8 : 0.45; ctx.translate(x, y); ctx.rotate(rnd(i, 15) * 6.28 + t * (rnd(i, 16) - 0.5) * 0.6);
     const z = 1 + pulse * 0.12 * R; ctx.scale(z, z);
-    const mks = Object.keys(stkImgs); const spr = (mks.length && i % 3 === 0) ? stkImgs[mks[i % mks.length]].out : null;
+    const spr = null;
     if (spr){ ctx.globalAlpha = 0.92; const ar = spr.width / spr.height, d = sz * 1.9; ctx.drawImage(spr, -d * Math.min(1, ar) / 2, -d / Math.max(1, ar) / 2, d * Math.min(1, ar), d / Math.max(1, ar)); }
     else if (type === 'tape' && S.pack === 'paper') ctx.drawImage(tapeTex, -sz * 0.9, -sz * 0.2, sz * 1.8, sz * 0.4); else drawShape(type, sz, 1, col);
     ctx.restore();
@@ -2138,40 +2153,6 @@ async function cutOut(r){
   try { cleanMask(d, w, h); } catch (e) { console.warn(e); } x.putImageData(id, 0, 0);
   return await trimAlpha(await new Promise(res => c.toBlob(res, 'image/png')));
 }
-async function setStkBlob(n, blob){ const img = await blobToImg(blob); stkImgs[n] = { img: img, url: img.src, out: outlineSprite(img, 420, 4) }; bump(); }
-function suggestStickers(){
-  const cnt = {};
-  lines.forEach(l => l.text.split(/\s+/).forEach((w, j) => { const c = w.replace(/[^A-Za-zÄÖÜäöüß]/g, ''); if (c.length < 4) return; const lw = c.toLowerCase(); if (STOP.has(lw)) return;
-    let sc = 0; if (j > 0 && /^[A-ZÄÖÜ]/.test(c)) sc += 2; if (EMO.some(e => e[0].test(lw))) sc += 3; if (FXMAP.some(f => f[0].test(lw))) sc += 1; if (sc) cnt[c] = (cnt[c] || 0) + sc; }));
-  return Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).slice(0, 6);
-}
-function renderStk(){
-  $('inStk').value = (P.stk || []).join(', ');
-  $('stkGrid').innerHTML = (P.stk || []).map(w => { const n = normW(w), e = stkImgs[n];
-    return '<div class="ic" data-n="' + esc(n) + '"><div class="ith" style="background-size:contain;background-color:transparent;' + (e ? 'background-image:url(' + e.url + ')' : '') + '">' + (e ? '' : 'noch leer') + '</div><div class="icl">' + esc(w) + '</div><div class="icb" style="grid-template-columns:1fr 1fr"><button data-act="re">↻</button><button data-act="rm">✕</button></div></div>'; }).join('');
-}
-async function genStickers(only){
-  if (stkBusy) return; const words = (P.stk || []).filter(w => only ? normW(w) === only : !stkImgs[normW(w)]);
-  if (!words.length) return toast((P.stk || []).length ? 'Alle Sticker sind da' : 'Erst Wörter eintragen');
-  stkBusy = true; const st = m => { $('stkStat').textContent = m; }; let ok = 0;
-  const q2 = words.slice(); let busyN = 0;
-  const one = async prov => { while (q2.length){ const w = q2.shift(); busyN++; try { await stkOne(w, prov, st); ok++; } catch (e) { console.warn(e); } busyN--; st(ok + ' / ' + words.length + ' Motive fertig' + (q2.length || busyN ? ' …' : '')); } };
-  try { await Promise.all(['poll', 'horde'].map(one)); st(ok + ' Motive fertig ✓'); }
-  catch (e) { console.warn(e); st('Fehler: ' + String(e.message || e).slice(0, 60)); }
-  finally { stkBusy = false; }
-}
-async function stkOne(w, prov, st){
-  {
-    {
-      const n = normW(w); st('„' + w + '“: zeichne …');
-      const prompt = w + ' (motif from a song lyric), one single object, ' + (pk().img || '') + ', elegant detailed illustration, soft studio light, centered, isolated on a plain pure white background, no text, no letters';
-      const r = await fetchAI(prompt, hashStr(n + (P.seeds['stk:' + n] || 0)) % 100000, 768, 768, null, prov);
-      st('„' + w + '“: stelle frei …');
-      const cut = await cutOut(r); await dbSet('stk:' + n, cut); await setStkBlob(n, cut); renderStk();
-    }
-  }
-}
-async function autoMotifs(){ if (!(P.stk || []).length){ const sg = suggestStickers().slice(0, 5); if (!sg.length) return; P.stk = sg; save(); renderStk(); } genStickers(); }
 // --- FX animations
 const FXMAP = [[/^(feuer|fire|flamm|brenn|burn|heiss|hot|hell|holle)/, 'fire'], [/^(blitz|thunder|storm|sturm|strom|power|energie|electric)/, 'lightning'], [/^(rauch|nebel|smoke|fog|dunst|geist|ghost)/, 'smoke'],
   [/^(lieb|love|herz|heart|kuss|kiss)/, 'hearts'], [/^(regen|rain|trane|tear)/, 'rain'], [/^(stern|star|nacht|night|himmel|sky|traum|dream|gold|diamant)/, 'stars']];
@@ -2887,6 +2868,48 @@ function computeCam(L, t, R){
 }
 function applyCam(f, over){ ctx.translate(W / 2 + cam.x * f, H / 2 + cam.y * f); ctx.rotate(cam.r * f); const z = 1 + (cam.z - 1) * f + (over || 0); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2); }
 
+/* ================= Titel & Kanal ================= */
+function drawBrand(L, t, first, darkText, p){
+  const fg = darkText ? p.ink : '#ffffff', bgc = darkText ? 'rgba(255,255,255,0.55)' : 'rgba(10,10,14,0.38)', ln = darkText ? rgba(p.ink, 0.18) : 'rgba(255,255,255,0.18)';
+  let y = 200;
+  if (S.progress){
+    const rg = exportRange ? [exportRange.a, exportRange.b] : getRange(); const d0 = rg[1] - rg[0]; if (d0 > 0){
+      const secs = []; L.forEach(a => { if (a.i < 0) return; const last = secs[secs.length - 1]; if (!last || last.sec !== a.sec) secs.push({ sec: a.sec, a: a.start }); });
+      let bounds = secs.map(x => clamp((x.a - rg[0]) / d0)).filter((v, i, arr) => v > 0.02 && v < 0.98 && (i === 0 || v - arr[i - 1] > 0.03)); bounds = [0].concat(bounds, [1]);
+      const f = clamp((t - rg[0]) / d0), x0 = 48, w0 = W - 96, gap = 8;
+      ctx.save();
+      for (let i = 0; i < bounds.length - 1; i++){ const sx = x0 + bounds[i] * w0 + (i ? gap / 2 : 0), ex = x0 + bounds[i + 1] * w0 - (i < bounds.length - 2 ? gap / 2 : 0); const ww = Math.max(4, ex - sx);
+        rr(ctx, sx, 112, ww, 6, 3); ctx.fillStyle = darkText ? rgba(p.ink, 0.18) : 'rgba(255,255,255,0.28)'; ctx.fill();
+        const fw = clamp((x0 + f * w0 - sx) / ww) * ww; if (fw > 0){ rr(ctx, sx, 112, Math.max(6, fw), 6, 3); ctx.fillStyle = fg; ctx.fill(); } }
+      ctx.restore(); }
+  }
+  const showBar = S.titleBar !== false && (P.title || P.artist) && t >= first - 0.3 && !(S.pack === 'editorial' && !bgIsImage) && S.pack !== 'paper';
+  const hd = S.showHandle && S.handle ? (S.handle.charAt(0) === '@' ? S.handle : '@' + S.handle) : '';
+  const q = clamp((t - first + 0.3) / 0.6);
+  if (showBar){
+    const tt = (P.title || '').trim(), ar = (P.artist || '').trim();
+    ctx.save(); ctx.globalAlpha = q; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.font = fnt('grotesk', 30); const w1 = ctx.measureText(tt).width; ctx.font = '400 30px "Inter", sans-serif'; const w2 = ar ? ctx.measureText(ar).width : 0;
+    const sc0 = Math.min(1, 860 / (w1 + w2 + (ar ? 40 : 0) + 120)); const pw = (w1 + w2 + (ar ? 40 : 0) + 120) * sc0, ph = 72;
+    ctx.translate(540 - pw / 2, y - (1 - easeOut(q)) * 20); ctx.scale(sc0, sc0);
+    rr(ctx, 0, 0, pw / sc0, ph, ph / 2); ctx.fillStyle = bgc; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ln; ctx.stroke();
+    ctx.fillStyle = pal(0); ctx.beginPath(); ctx.arc(40, ph / 2, 9 + pulse * 4, 0, 6.283); ctx.fill();
+    ctx.fillStyle = fg; ctx.font = fnt('grotesk', 30); ctx.fillText(tt, 68, ph / 2 + 1);
+    if (ar){ ctx.globalAlpha = q * 0.7; ctx.font = '400 30px "Inter", sans-serif'; ctx.fillText(ar, 68 + w1 + 22, ph / 2 + 1); }
+    ctx.restore(); y += 96;
+  }
+  if (hd && t >= first - 0.3 && S.pack !== 'paper'){
+    ctx.save(); ctx.globalAlpha = q * 0.9; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '600 28px "Inter", sans-serif'; ctx.fillStyle = fg;
+    if (!darkText){ ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 10; } ctx.fillText(hd, 540, showBar ? y - 6 : y + 36); ctx.restore();
+  }
+  if (S.showTitle && P.artist && t < first - 0.2 && first > 1.4){
+    const qa = clamp((t - 0.1) / 0.5) * (1 - clamp((t - (first - 0.7)) / 0.4));
+    if (qa > 0){ ctx.save(); ctx.globalAlpha = qa; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = fg; ctx.font = '600 34px "Inter", sans-serif';
+      if (!darkText){ ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 14; } const tx = P.artist.toUpperCase().split('').join(String.fromCharCode(8202)); ctx.fillText(tx, 540, 560);
+      ctx.fillStyle = pal(0); ctx.fillRect(540 - 40 * easeOut(qa), 610, 80 * easeOut(qa), 4); ctx.restore(); }
+  }
+}
+
 /* ================= Frame ================= */
 let introCache = null, introVer = -1;
 function introItem(first){
@@ -2966,21 +2989,8 @@ function draw(t){
       ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.16 * lq3; const ox = Math.floor(rnd(Math.floor(t * 24), 1) * 256), oy = Math.floor(rnd(Math.floor(t * 24), 2) * 256); for (let y = -oy; y < H; y += 256) for (let x = -ox; x < W; x += 256) ctx.drawImage(gc, x, y); }
     else if (aP.look === 'letterbox'){ const bh = 250 * easeInOut(lq3); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, bh); ctx.fillRect(0, H - bh, W, bh); }
     ctx.restore(); }
-  // top title
-  if (S.showTitle && (P.title || P.artist) && t >= first - 0.3 && !(S.pack === 'editorial' && !bgIsImage) && S.pack !== 'paper'){
-    ctx.save(); ctx.globalAlpha = 0.85 * clamp((t - first + 0.3) / 0.5); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = darkText ? p.ink : '#ffffff'; if (!darkText){ ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 12; }
-    const txt = [P.title, P.artist].filter(Boolean).join('  —  ');
-    ctx.font = fnt('grotesk', 34); let w = ctx.measureText(txt).width; if (w > 860) ctx.font = fnt('grotesk', 34 * 860 / w);
-    ctx.fillText(S.pack === 'editorial' ? txt : txt.toUpperCase(), 540, S.pack === 'editorial' ? 236 : 250); ctx.restore();
-  }
-  if (S.handle && S.pack !== 'paper'){ ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = darkText ? p.ink : '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if (!darkText){ ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12; } ctx.font = fnt('grotesk', 32); ctx.fillText(S.handle, 540, 170); ctx.restore(); }
-  if (S.progress){
-    const rg = exportRange ? [exportRange.a, exportRange.b] : getRange(); const f = rg[1] > rg[0] ? clamp((t - rg[0]) / (rg[1] - rg[0])) : 0;
-    ctx.save(); rr(ctx, 180, 1600, 720, 10, 5); ctx.fillStyle = darkText ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.25)'; ctx.fill();
-    if (f > 0){ rr(ctx, 180, 1600, Math.max(10, 720 * f), 10, 5); ctx.fillStyle = pal(0); ctx.fill(); } ctx.restore();
-  }
+  // title plate, channel, progress
+  if (!thumbRendering) drawBrand(L, t, first, darkText, p);
   if (S.safe && !exportRange && S.platform !== 'youtube' && !thumbRendering) drawSafe();
   if (!L.length && !exportRange){ ctx.save(); ctx.fillStyle = darkText ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)'; ctx.font = fnt('grotesk', 34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('Noch nicht synchronisiert → Tab 02', 540, 1560); ctx.restore(); }
@@ -3084,7 +3094,7 @@ async function genImages(all, only){
   };
   await Promise.all((only ? ['poll'] : provList()).map(worker)); keys.forEach(k => { if (genState[k] === 'wait' || (genState[k] === 'busy' && !genDone.has(k))) genState[k] = genDone.has(k) ? '' : 'err'; });
   genRunning = false; updateGenBtns();
-  if (!only && !genCancel && ok) setTimeout(autoMotifs, 300);
+
   setGenStat(genCancel ? 'Abgebrochen.' : (ok + ' Bild(er) fertig' + (fail ? ', ' + fail + ' fehlgeschlagen – „Fehlende erzeugen“ nochmal tippen oder eigenes Foto nutzen' : '')));
   genCancel = false; bump(); renderAvatarUI(); if (only === 'avatar' && ok){ if (!S.avatar){ S.avatar = true; save(); renderAvatarUI(); bump(); } detectMouth(); }
 }
@@ -3150,17 +3160,18 @@ function bindSeg(id, fn){ $(id).addEventListener('click', e => { const b = e.tar
 function renderPal(){ $('palView').innerHTML = pk().palette.map((c, i) => '<i style="background:' + pal(i) + '"></i>').join(''); renderPaperSeg(); }
 function applyUI(){
   $('inTitle').value = P.title; $('inArtist').value = P.artist; $('inLyrics').value = P.lyricsRaw;
-  $('tUpper').checked = S.upper; $('tTitle').checked = S.showTitle; $('tProg').checked = S.progress;
+  $('tUpper').checked = S.upper; $('tTitle').checked = S.showTitle; $('tProg').checked = S.progress; $('tTBar').checked = S.titleBar !== false; $('tHandle').checked = !!S.showHandle; $('inTitle2').value = P.title || ''; $('inArtist2').value = P.artist || '';
   $('inHandle').value = S.handle; $('inReact').value = S.react; $('reactV').textContent = S.react + ' %';
   $('inShift').value = S.shift; $('shiftV').textContent = (S.shift > 0 ? '+' : '') + S.shift.toFixed(2).replace('.', ',') + ' s';
   $('inKey').value = S.apiKey || '';
-  refreshPlat(); refreshVidUI(); renderStk(); renderFig(); refreshDir(); renderAvGal(); renderLog(); $('tPro').checked = S.pro; document.body.classList.toggle('pro', !!S.pro); $('tAutoW').checked = S.autoW !== false; $('tLive').checked = S.living; $('tFxA').checked = S.fxAnim; $('tInter').checked = S.fxInter;
+  refreshPlat(); refreshVidUI(); renderFig(); refreshDir(); renderAvGal(); renderLog(); $('tPro').checked = S.pro; document.body.classList.toggle('pro', !!S.pro); $('tAutoW').checked = S.autoW !== false; $('tLive').checked = S.living; $('tFxA').checked = S.fxAnim; $('tInter').checked = S.fxInter;
   $('tPart').checked = S.fxPart; $('tFloat').checked = S.fxFloat; $('tViz').checked = S.fxViz; $('tDepth').checked = S.fxDepth;
   setSeg('segPack', S.pack); renderPaperSeg(); setSeg('segEnergy', S.energy); setSeg('segImg', S.imgMode); setSeg('segRange', S.range); setSeg('segLen', S.clipLen); setSeg('segRate', syncRate); setSeg('segSub', curSub);
   const gs = $('selGenre'); gs.innerHTML = Object.keys(GENRES).map(k => '<option value="' + k + '"' + (k === S.genre ? ' selected' : '') + '>' + GENRES[k].n + '</option>').join('');
   $('lineCount').textContent = lines.length ? lines.length + ' Zeilen · ' + (P.secs || []).length + ' Abschnitte' : '';
   renderPal(); refreshAudioInfo(); refreshExport(); renderSyncList();
 }
+function previewAt(t){ if (!audio.paused) return; const L = getTimeline(); let tt = t; if (tt == null){ tt = L.length ? L[0].start + 0.8 : 1; } try { audio.currentTime = tt; } catch (e) {} dirty = true; }
 function switchTab(name){
   if (name === curTab) return;
   if (!audio.paused) audio.pause();
@@ -3170,12 +3181,12 @@ function switchTab(name){
   if (name === 'sync') renderSyncList();
   if (name === 'export') refreshExport();
   if (name === 'design'){ $('pvWrap').appendChild(cv); dirty = true; renderSub(); }
-  window.scrollTo(0, 0);
+  window.scrollTo(0, 0); document.body.classList.remove('pvmini');
 }
 function renderSub(){
   document.querySelectorAll('.sub-p').forEach(s => s.classList.toggle('on', s.id === 'sub-' + curSub)); setSeg('segSub', curSub);
-  if (curSub === 'look') scheduleThumbs();
-  if (curSub === 'img') renderImgGrid(); if (curSub === 'lines') renderLineEd(); if (curSub === 'avatar') renderAvatarUI();
+  scheduleThumbs();
+  if (curSub === 'img') renderImgGrid(); if (curSub === 'dir') renderLineEd(); if (curSub === 'avatar') renderAvatarUI();
 }
 
 /* ================= Sync ================= */
@@ -3360,8 +3371,8 @@ function bindUI(){
     if (!P.title){ P.title = P.audioName; $('inTitle').value = P.title; } save(); bump(); e.target.value = ''; });
   $('fCover').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; if (!f) return; await setCoverBlob(f); dbSet('cover', f); e.target.value = ''; });
   $('coverDel').addEventListener('click', () => { coverImg = null; if (coverURL) URL.revokeObjectURL(coverURL); coverURL = null; $('coverThumb').src = ''; dbDel('cover'); bump(); save(); });
-  $('inTitle').addEventListener('input', e => { P.title = e.target.value; bump(); save(); });
-  $('inArtist').addEventListener('input', e => { P.artist = e.target.value; bump(); save(); });
+  $('inTitle').addEventListener('input', e => { P.title = e.target.value; $('inTitle2').value = P.title; bump(); save(); });
+  $('inArtist').addEventListener('input', e => { P.artist = e.target.value; $('inArtist2').value = P.artist; bump(); save(); });
   let lyT; $('inLyrics').addEventListener('input', e => { P.lyricsRaw = e.target.value; clearTimeout(lyT); lyT = setTimeout(reparse, 300); });
   $('btnReset').addEventListener('click', async () => {
     if (!confirm('Projekt wirklich zurücksetzen? Song, Cover, Lyrics, Timing und Bilder werden gelöscht.')) return;
@@ -3388,15 +3399,20 @@ function bindUI(){
   $('pvoClose').addEventListener('click', () => { $('pvOv').classList.remove('on'); $('pvWrap').appendChild(cv); dirty = true; });
   $('pvoPlay').addEventListener('click', () => $('pvPlay').click());
   bindSeg('segSub', v => { curSub = v; renderSub(); });
-  bindSeg('segPack', v => { S.pack = v; setSeg('segPack', v); renderPal(); bump(); save(); if (curSub === 'img') renderImgGrid(); });
+  bindSeg('segPack', v => { S.pack = v; setSeg('segPack', v); renderPal(); bump(); save(); if (curSub === 'img') renderImgGrid(); const b = document.querySelector('#segPack button.on'); if (b) b.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); });
   bindSeg('segEnergy', v => { S.energy = parseFloat(v); setSeg('segEnergy', S.energy); bump(); save(); });
   $('btnPal').addEventListener('click', () => { if (S.pack === 'paper') S.paperSet = (S.paperSet + 1) % PAPER_SETS.length; else S.palShift = (S.palShift + 1) % 12; renderPal(); bump(); save(); scheduleThumbs(); });
   bindSeg('segPaper', v => { if (S.pack === 'paper') S.paperSet = +v; else S.palShift = +v; renderPal(); bump(); save(); scheduleThumbs(); });
   $('btnDice').addEventListener('click', () => { S.seed++; bump(); save(); scheduleThumbs(); toast('Neue Varianten gewürfelt'); });
   $('tUpper').addEventListener('change', e => { S.upper = e.target.checked; bump(); save(); });
-  $('tTitle').addEventListener('change', e => { S.showTitle = e.target.checked; bump(); save(); });
-  $('tProg').addEventListener('change', e => { S.progress = e.target.checked; bump(); save(); });
-  $('inHandle').addEventListener('input', e => { S.handle = e.target.value; bump(); save(); });
+  $('tTitle').addEventListener('change', e => { S.showTitle = e.target.checked; bump(); save(); if (S.showTitle) previewAt(0.6); });
+  $('tTBar').addEventListener('change', e => { S.titleBar = e.target.checked; bump(); save(); previewAt(null); });
+  $('tHandle').addEventListener('change', e => { S.showHandle = e.target.checked; bump(); save(); previewAt(null); });
+  $('inTitle2').addEventListener('input', e => { P.title = e.target.value; $('inTitle').value = P.title; introCache = null; bump(); save(); });
+  $('inArtist2').addEventListener('input', e => { P.artist = e.target.value; $('inArtist').value = P.artist; bump(); save(); });
+  $('btnIntro').addEventListener('click', () => { try { audio.currentTime = 0; } catch (e) {} audio.play().catch(() => {}); });
+  $('tProg').addEventListener('change', e => { S.progress = e.target.checked; bump(); save(); previewAt(null); });
+  $('inHandle').addEventListener('input', e => { let v = e.target.value.trim(); S.handle = v; if (v && !S.showHandle){ S.showHandle = true; $('tHandle').checked = true; } bump(); save(); });
   $('inReact').addEventListener('input', e => { S.react = parseInt(e.target.value, 10); $('reactV').textContent = S.react + ' %'; bump(); save(); });
   // images
   bindSeg('segImg', v => { S.imgMode = v; setSeg('segImg', v); renderImgGrid(); bump(); save(); });
@@ -3462,16 +3478,11 @@ function bindUI(){
   $('avGal').addEventListener('click', e => { const bt = e.target.closest('button.avc'); if (bt) pickAv(bt.dataset.id); });
   $('avGal').addEventListener('change', async e => { if (e.target.id !== 'fGlb') return; const f = e.target.files && e.target.files[0]; if (!f) return; await dbSet('glb', f); pickAv('own'); });
   $('avCols').addEventListener('click', e => { const bt = e.target.closest('.sw'); if (!bt) return; S.avCol = S.avCol || {}; const c0 = S.avCol[S.av3Id] = S.avCol[S.av3Id] || {}; if (bt.dataset.c) c0[bt.dataset.k] = bt.dataset.c; else delete c0[bt.dataset.k]; save(); applyAvCol(); dirty = true; });
-  $('tPro').addEventListener('change', e => { S.pro = e.target.checked; document.body.classList.toggle('pro', S.pro); save(); if (!S.pro && curSub === 'lines') { const bt = document.querySelector('#segSub button[data-v=look]'); if (bt) bt.click(); } });
+  window.addEventListener('scroll', () => { document.body.classList.toggle('pvmini', curTab === 'design' && window.scrollY > 60); }, { passive: true });
+  $('tPro').addEventListener('change', e => { S.pro = e.target.checked; document.body.classList.toggle('pro', S.pro); save(); if (false) { const bt = document.querySelector('#segSub button[data-v=look]'); if (bt) bt.click(); } });
   $('tAutoW').addEventListener('change', e => { S.autoW = e.target.checked; save(); });
   $('tFxA').addEventListener('change', e => { S.fxAnim = e.target.checked; save(); dirty = true; });
   $('tInter').addEventListener('change', e => { S.fxInter = e.target.checked; save(); dirty = true; });
-  $('inStk').addEventListener('change', e => { P.stk = e.target.value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 12); save(); renderStk(); });
-  $('btnStkSug').addEventListener('click', () => { const sg = suggestStickers(); if (!sg.length) return toast('Keine passenden Wörter gefunden'); const set = new Set((P.stk || []).concat(sg)); P.stk = [...set].slice(0, 12); save(); renderStk(); });
-  $('btnStk').addEventListener('click', () => { P.stk = $('inStk').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 12); save(); renderStk(); genStickers(); });
-  $('stkGrid').addEventListener('click', async e => { const b = e.target.closest('button'), c = e.target.closest('.ic'); if (!b || !c) return; const n = c.dataset.n;
-    if (b.dataset.act === 'rm'){ P.stk = (P.stk || []).filter(w => normW(w) !== n); delete stkImgs[n]; dbDel('stk:' + n); save(); renderStk(); bump(); }
-    else { P.seeds['stk:' + n] = Math.floor(Math.random() * 1e6); delete stkImgs[n]; save(); genStickers(n); } });
 
   $('selProj').addEventListener('change', e => switchProject(e.target.value));
   $('projNew').addEventListener('click', async () => { await flushSave(); const id = 'p' + Date.now().toString(36); PROJS.push({ id: id, name: 'Neuer Song', upd: Date.now() }); await rawSet('projects', PROJS); await rawSet('curProject', id); location.reload(); });
@@ -3541,7 +3552,6 @@ async function init(){
   const keys = await dbKeys();
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('img:') === 0){ const b = await dbGet(k); if (b) await setImgBlob(k.slice(4), b); } }
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('fig:') === 0){ const b = await dbGet(k); if (b) await setFigBlob(+k.slice(4), b); } }
-  for (const k of keys){ if (typeof k === 'string' && k.indexOf('stk:') === 0){ const b = await dbGet(k); if (b) await setStkBlob(k.slice(4), b); } }
   for (const k of keys){ if (typeof k === 'string' && k.indexOf('depth:') === 0){ const d = await dbGet(k); if (d && d.data) depthMaps[k.slice(6)] = d; } }
   setTimeout(prebuildDepth, 1500); try { localStorage.removeItem('hook_busy'); } catch (e) {}
   if (S.avMode === '3d'){ const gb = S.av3Id === 'own' ? await dbGet('glb') : null; if (gb){ av3URL = URL.createObjectURL(gb); load3D(av3URL); } else load3D(av3StartURL()); }
