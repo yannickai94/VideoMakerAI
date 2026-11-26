@@ -173,7 +173,7 @@ details.card[open] summary{margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 3.1</div></header>
+<header><div class="htitle">HOOK</div><div class="hsub">Lyric Video Studio · 3.2</div></header>
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="navgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A8FF"/><stop offset="1" stop-color="#4FD8FF"/></linearGradient></defs></svg>
 
 <main>
@@ -338,7 +338,8 @@ details.card[open] summary{margin-bottom:12px}
     </div>
     <div class="card"><div class="lbl"><span>Pollinations-Key (optional)</span><span id="keyStat"></span></div>
       <input type="text" id="inKey" placeholder="pk_…  (leer = Gratis-Modus)" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <p class="hint">Kostenloser Key über enter.pollinations.ai (anmelden, Key erstellen, einfügen). Mit Key: schneller und ohne Logo. Ohne Key wartet HOOK automatisch ca. 45 s zwischen den Bildern (Limit des Gratis-Dienstes) und versucht es bei Fehlern erneut.</p>
+      <p class="hint">Mit Key erzeugt HOOK 4 Bilder gleichzeitig in wenigen Sekunden, ohne Logo. Ohne Key: ca. 1 Bild pro 45 s plus AI Horde.</p>
+      <a class="btn sm" href="https://enter.pollinations.ai" target="_blank" rel="noopener" style="margin-top:10px;text-decoration:none;display:flex;justify-content:center">Gratis-Key holen</a>
     </div>
     <details class="card pro"><summary>Erweitert · Bild-Dienst</summary>
       <input type="text" id="inEp" autocomplete="off">
@@ -1354,7 +1355,9 @@ function drawImgBg(img, key, seg, t, R){
 function drawBgKey(key, seg, t, R){
   if (key.indexOf('pack:') === 0){ drawPackBg(+key.slice(5) || 0, t, R); return; }
   const img = key === 'cover' ? coverImg : (imgs[key] && imgs[key].img);
-  if (img) drawImgBg(img, key, seg, t, R); else drawPackBg(0, t, R);
+  if (!img){ drawPackBg(0, t, R); return; }
+  const age = imgs[key] && imgs[key].at ? (performance.now() - imgs[key].at) / 900 : 1;
+  if (age < 1 && !exporting){ drawPackBg(0, t, R); ctx.save(); ctx.globalAlpha *= easeInOut(age); drawImgBg(img, key, seg, t, R); ctx.restore(); dirty = true; } else drawImgBg(img, key, seg, t, R);
 }
 function drawBg(bg, t, R){
   if (!bg.prev || bg.q >= 1 || bg.prev === bg.key){ drawBgKey(bg.key, bg.seg, t, R); return; }
@@ -2199,14 +2202,14 @@ function omGet(ch){
 // --- AI stickers
 const stkImgs = {}; const ANON_GAP = 46000; let BRmod = null, stkBusy = false;
 const HORDE_MODELS = ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'Deliberate', 'AbsoluteReality', "ICBINP - I Can't Believe It's Not Photography", 'stable_diffusion'];
-async function fetchHorde(prompt, w, h, seed, stat){
+async function fetchHorde(prompt, w, h, seed, stat, stopFn){
   const H2 = 'https://aihorde.net/api/v2'; const hd = { 'apikey': '0000000000', 'Client-Agent': 'HOOK:3.1:github.io', 'Content-Type': 'application/json' };
   w = Math.round(w / 64) * 64; h = Math.round(h / 64) * 64;
   const body = { prompt: prompt + ' ### text, letters, watermark, logo, signature, blurry, lowres, deformed, nsfw', params: { width: w, height: h, steps: 22, n: 1, sampler_name: 'k_euler_a', cfg_scale: 6, seed: String(seed) }, nsfw: false, censor_nsfw: true, r2: true, models: HORDE_MODELS };
   const r = await fetch(H2 + '/generate/async', { method: 'POST', headers: hd, body: JSON.stringify(body) }); if (!r.ok) throw new Error('Horde ' + r.status); const id = (await r.json()).id; if (!id) throw new Error('Horde ohne Auftrag');
   const t0 = Date.now();
   for (;;){
-    if (genCancel){ fetch(H2 + '/generate/status/' + id, { method: 'DELETE', headers: hd }).catch(() => {}); throw new Error('abgebrochen'); }
+    if (genCancel || (stopFn && stopFn())){ fetch(H2 + '/generate/status/' + id, { method: 'DELETE', headers: hd }).catch(() => {}); throw new Error('abgebrochen'); }
     await sleep(5000); let c; try { c = await (await fetch(H2 + '/generate/check/' + id, { headers: hd, cache: 'no-store' })).json(); } catch (e) { continue; }
     if (c.faulted || c.is_possible === false) throw new Error('Horde fehlgeschlagen'); if (c.done) break;
     stat && stat('AI Horde: ' + (c.queue_position ? 'Platz ' + c.queue_position + ', ' : '') + '~' + (c.wait_time || 0) + ' s');
@@ -2215,7 +2218,7 @@ async function fetchHorde(prompt, w, h, seed, stat){
   const st = await (await fetch(H2 + '/generate/status/' + id, { headers: hd, cache: 'no-store' })).json(); const g = st.generations && st.generations[0]; if (!g || g.censored || !g.img) throw new Error('Horde ohne Bild');
   const ib = await (await fetch(g.img)).blob(); if (ib.size < 2000) throw new Error('Horde Bild defekt'); return { blob: ib, anon: false, prov: 'horde' };
 }
-function provList(){ return (S.apiKey || '').trim() ? ['poll', 'poll', 'horde'] : ['poll', 'horde', 'horde']; }
+function provList(){ return (S.apiKey || '').trim() ? ['poll', 'poll', 'poll', 'poll', 'horde'] : ['poll', 'horde', 'horde', 'horde']; }
 async function fetchAI(prompt, seed, w, h, stat, prov){
   if (prov === 'horde'){ try { return await fetchHorde(prompt, w, h, seed, stat); } catch (e) { console.warn('horde', e); if (genCancel) throw e; } }
   let useKey = !!(S.apiKey || '').trim();
@@ -3157,22 +3160,23 @@ const seedFor = k => (P.seeds && P.seeds[k] != null) ? P.seeds[k] : (hashStr(k) 
 function setImgBlob(k, blob){
   return new Promise(res => {
     const url = URL.createObjectURL(blob); const img = new Image();
-    img.onload = () => { if (imgs[k] && imgs[k].url) URL.revokeObjectURL(imgs[k].url); imgs[k] = { img: img, url: url }; dirty = true; res(true); };
+    img.onload = () => { if (imgs[k] && imgs[k].url) URL.revokeObjectURL(imgs[k].url); imgs[k] = { img: img, url: url, at: performance.now() }; dirty = true; res(true); };
     img.onerror = () => { URL.revokeObjectURL(url); res(false); };
     img.src = url;
   });
 }
-const genState = {}; let genRunning = false, genCancel = false;
+const genState = {}; let genRunning = false, genCancel = false; const genDone = new Set();
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let lastAnon = 0;
 function setGenStat(msg){ $('genStat').textContent = msg; $('avStat').textContent = msg; }
 async function genOne(k, prov){
   const prompt = fullPrompt(k), seed = seedFor(k);
-  if (prov === 'horde'){ try { const r = await fetchHorde(prompt, 576, 1024, seed, null); if (await setImgBlob(k, r.blob)){ P.ai = P.ai || {}; P.ai[k] = 'horde'; save(); await dbSet('img:' + k, r.blob); return true; } } catch (e) { console.warn('horde', k, e); if (genCancel) return false; } }
+  const stopK = () => genCancel || genDone.has(k);
+  if (prov === 'horde'){ try { const r = await fetchHorde(prompt, 576, 1024, seed, null, stopK); if (genDone.has(k)) return true; if (await setImgBlob(k, r.blob)){ P.ai = P.ai || {}; P.ai[k] = 'horde'; save(); await dbSet('img:' + k, r.blob); return true; } } catch (e) { console.warn('horde', k, e); if (genCancel) return false; } }
   const anonUrl = (S.endpoint || DEF_EP).replace('{prompt}', encodeURIComponent(prompt)).replace('{w}', '768').replace('{h}', '1344').replace('{seed}', String(seed));
   let useKey = !!(S.apiKey || '').trim();
   for (let attempt = 0; attempt < 6; attempt++){
-    if (genCancel) return false;
+    if (genCancel) return false; if (genDone.has(k)) return true;
     let url;
     if (useKey) url = 'https://gen.pollinations.ai/image/' + encodeURIComponent(prompt) + '?model=flux&width=768&height=1344&seed=' + seed + '&nologo=true&key=' + encodeURIComponent(S.apiKey.trim());
     else {
@@ -3190,6 +3194,7 @@ async function genOne(k, prov){
         setGenStat('Server ausgelastet – neuer Versuch in ' + Math.round(w / 1000) + ' s …'); await sleep(w); continue; }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const blob = await r.blob(); if (!/^image\//.test(blob.type) || blob.size < 2000) throw new Error('kein Bild');
+      if (genDone.has(k)) return true;
       if (await setImgBlob(k, blob)){ P.ai = P.ai || {}; P.ai[k] = useKey ? 'key' : 'anon'; save(); await dbSet('img:' + k, blob); return true; }
       throw new Error('Bild defekt');
     } catch (e) { console.warn('gen', k, e); if (attempt < 5){ setGenStat('Fehler – neuer Versuch …'); await sleep(useKey ? 3000 : 4000); } }
@@ -3201,11 +3206,25 @@ async function genImages(all, only){
   const keys = only ? [only] : imgKeys().filter(k => all || !imgs[k]);
   if (genRunning === false && !keys.length){ toast(imgKeys().length ? 'Alle Bilder sind schon da' : 'Erst Lyrics einfügen'); return; }
   genRunning = true; genCancel = false; updateGenBtns();
-  let ok = 0, fail = 0, done = 0; const queue = keys.slice(); keys.forEach(k => { genState[k] = 'wait'; }); renderImgGrid();
-  const upd = () => setGenStat(done + ' / ' + keys.length + ' fertig · ' + keys.filter(k => genState[k] === 'busy').length + ' gleichzeitig in Arbeit (Pollinations + AI Horde)');
-  const worker = async prov => { while (queue.length && !genCancel){ const k = queue.shift(); genState[k] = 'busy'; renderImgGrid(); upd();
-    const r = await genOne(k, prov); genState[k] = r ? '' : 'err'; done++; if (r) ok++; else fail++; renderImgGrid(); upd(); } };
-  await Promise.all((only ? ['poll'] : provList()).map(worker)); keys.forEach(k => { if (genState[k] === 'wait') genState[k] = ''; });
+  let ok = 0, fail = 0, done = 0; genDone.clear();
+  let queue = keys.slice();
+  if (S.imgMode === 'line' && keys.length > 2){ const L0 = getTimeline(); const now = audio.currentTime || 0; let i0 = 0; for (let i = 0; i < L0.length; i++){ if (L0[i].start >= now - 1){ i0 = Math.max(0, keys.indexOf('line' + L0[i].i)); break; } } queue = keys.slice(i0).concat(keys.slice(0, i0)); }
+  keys.forEach(k => { genState[k] = 'wait'; }); renderImgGrid();
+  const hordeOn = new Set(), stolen = new Set();
+  const upd = () => setGenStat(done + ' / ' + keys.length + ' fertig · ' + keys.filter(k => genState[k] === 'busy').length + ' gleichzeitig · Vorschau läuft schon, Bilder blenden sich ein');
+  const finish = (k, r) => { if (genDone.has(k)) return; if (r){ genDone.add(k); genState[k] = ''; done++; ok++; } else if (!hordeOn.has(k) && !stolen.has(k)){ genState[k] = 'err'; done++; fail++; } renderImgGrid(); upd(); };
+  const worker = async prov => {
+    for (;;){
+      if (genCancel) return; let k = null;
+      if (queue.length) k = prov === 'horde' ? queue.pop() : queue.shift();
+      else if (prov !== 'horde'){ for (const h of hordeOn){ if (!stolen.has(h) && !genDone.has(h)){ k = h; stolen.add(h); break; } } }
+      if (!k) return;
+      genState[k] = 'busy'; renderImgGrid(); upd(); if (prov === 'horde') hordeOn.add(k);
+      const r = await genOne(k, prov); if (prov === 'horde') hordeOn.delete(k); else stolen.delete(k);
+      if (r || (!hordeOn.has(k) && !stolen.has(k))) finish(k, r);
+    }
+  };
+  await Promise.all((only ? ['poll'] : provList()).map(worker)); keys.forEach(k => { if (genState[k] === 'wait' || (genState[k] === 'busy' && !genDone.has(k))) genState[k] = genDone.has(k) ? '' : 'err'; });
   genRunning = false; updateGenBtns();
   if (!only && !genCancel && ok) setTimeout(autoMotifs, 300);
   setGenStat(genCancel ? 'Abgebrochen.' : (ok + ' Bild(er) fertig' + (fail ? ', ' + fail + ' fehlgeschlagen – „Fehlende erzeugen“ nochmal tippen oder eigenes Foto nutzen' : '')));
@@ -3542,7 +3561,11 @@ function bindUI(){
     if (await setImgBlob(tgt, f)){ if (P.ai) delete P.ai[tgt]; save(); await dbSet('img:' + tgt, f); genState[tgt] = ''; renderImgGrid(); renderAvatarUI(); bump(); if (tgt === 'avatar'){ S.avatar = true; S.mouthAng = 0; S.chinH = 0; save(); renderAvatarUI(); detectMouth(); } } else toast('Bild konnte nicht geladen werden');
     e.target.value = ''; imgTarget = null; });
   $('inEp').addEventListener('change', e => { S.endpoint = e.target.value.trim() || DEF_EP; e.target.value = S.endpoint; save(); });
-  $('inKey').addEventListener('change', e => { S.apiKey = e.target.value.trim(); save(); renderImgGrid(); toast(S.apiKey ? 'Key gespeichert' : 'Gratis-Modus aktiv'); });
+  $('inKey').addEventListener('change', async e => { S.apiKey = e.target.value.trim(); save(); renderImgGrid(); if (!S.apiKey){ toast('Gratis-Modus aktiv'); return; }
+    $('keyStat').textContent = 'prüfe …';
+    try { const r = await fetch('https://gen.pollinations.ai/image/test?model=flux&width=64&height=64&seed=1&nologo=true&key=' + encodeURIComponent(S.apiKey), { cache: 'no-store' });
+      $('keyStat').textContent = r.ok ? 'funktioniert ✓' : (r.status === 401 || r.status === 403) ? 'Key ungültig' : r.status === 402 ? 'Guthaben leer' : 'gespeichert'; toast(r.ok ? 'Key funktioniert – 4 Bilder gleichzeitig' : 'Key-Prüfung: HTTP ' + r.status); }
+    catch (er) { $('keyStat').textContent = 'gespeichert'; } });
   $('tAv').addEventListener('change', e => { if (e.target.checked && S.avMode !== '3d' && !(imgs.avatar && imgs.avatar.img)){ e.target.checked = false; return toast('Erst einen Avatar erzeugen oder Bild wählen'); } S.avatar = e.target.checked; bump(); save(); });
   $('inAvDesc').addEventListener('input', e => { S.avDesc = e.target.value; save(); });
   $('btnAvGen').addEventListener('click', () => { if (genRunning){ genCancel = true; return; } if (!S.avDesc.trim()) return toast('Beschreibe kurz deinen Charakter');
